@@ -1,0 +1,552 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Patrimônio – SUPERVILLE</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23b91c1c'/><text x='16' y='24' font-size='20' font-weight='900' text-anchor='middle' fill='white' font-family='sans-serif'>S</text></svg>" />
+  <!-- Biblioteca QR Code -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+
+<!-- ===================== HEADER ===================== -->
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-icon">SV</div>
+      <div class="logo-text">
+        <span>SUPERVILLE</span>
+        <span>Controle de Patrimônio</span>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-back" onclick="window.location.href='index.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Voltar
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ===================== CONTEÚDO ===================== -->
+<main class="container" id="main-content">
+  <!-- Gerado por JS -->
+</main>
+
+<!-- ===================== MODAL MOVIMENTAÇÃO ===================== -->
+<div class="modal-overlay" id="modal-mov" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-title">Registrar Movimentação</h2>
+      <button class="modal-close" id="modal-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="mov-nome">Nome do Colaborador *</label>
+          <input type="text" id="mov-nome" placeholder="Nome completo" />
+        </div>
+        <div class="form-group">
+          <label for="mov-setor">Setor *</label>
+          <input type="text" id="mov-setor" placeholder="Setor do colaborador" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="mov-data">Data *</label>
+          <input type="date" id="mov-data" />
+        </div>
+        <div class="form-group">
+          <label for="mov-hora">Hora *</label>
+          <input type="time" id="mov-hora" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="mov-tipo">Tipo de Movimentação *</label>
+        <select id="mov-tipo">
+          <option value="">Selecione...</option>
+          <option value="Retirada">Retirada</option>
+          <option value="Devolução">Devolução</option>
+          <option value="Transferência">Transferência</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="mov-obs">Observações</label>
+        <textarea id="mov-obs" placeholder="Informações adicionais..."></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-cancelar">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-mov">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar Movimentação
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ===================== MODAL EDITAR ===================== -->
+<div class="modal-overlay" id="modal-edit" role="dialog" aria-modal="true" aria-labelledby="modal-edit-title">
+  <div class="modal">
+    <div class="modal-header">
+      <h2 id="modal-edit-title">Editar Patrimônio</h2>
+      <button class="modal-close" id="modal-edit-close" aria-label="Fechar">&times;</button>
+    </div>
+    <div class="modal-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-equipamento">Equipamento</label>
+          <input type="text" id="edit-equipamento" />
+        </div>
+        <div class="form-group">
+          <label for="edit-modelo">Marca / Modelo</label>
+          <input type="text" id="edit-modelo" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-imei">IMEI</label>
+          <input type="text" id="edit-imei" />
+        </div>
+        <div class="form-group">
+          <label for="edit-serie">Número de Série</label>
+          <input type="text" id="edit-serie" />
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="edit-setor">Setor</label>
+          <input type="text" id="edit-setor" />
+        </div>
+        <div class="form-group">
+          <label for="edit-responsavel">Responsável</label>
+          <input type="text" id="edit-responsavel" />
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="edit-status">Status</label>
+        <select id="edit-status">
+          <option value="Em uso">Em uso</option>
+          <option value="Disponível">Disponível</option>
+          <option value="Manutenção">Manutenção</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="edit-observacoes">Observações</label>
+        <textarea id="edit-observacoes"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" id="btn-edit-cancelar">Cancelar</button>
+      <button class="btn btn-primary" id="btn-salvar-edit">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+        Salvar Alterações
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="dados.js"></script>
+<script src="script.js"></script>
+<script>
+// ============================================================
+// patrimonio.js – Lógica da página de detalhe do patrimônio
+// ============================================================
+
+// ---- Ler ?id= da URL ----
+const params = new URLSearchParams(window.location.search);
+const patrimonioId = params.get('id');
+
+// ---- URL base para QR Code ----
+// Em produção, troque pelo domínio real. Aqui detectamos automaticamente.
+const BASE_URL = window.location.origin + window.location.pathname.replace('patrimonio.html', '');
+
+// ---- Estado ----
+let dadosAtuais = null;
+
+// ---- Renderizar página ----
+function renderPagina() {
+  const p = getPatrimonio(patrimonioId);
+  const main = document.getElementById('main-content');
+
+  // Patrimônio não encontrado
+  if (!p) {
+    document.title = 'Não encontrado – SUPERVILLE';
+    main.innerHTML = `
+      <div class="not-found">
+        <h2>404</h2>
+        <p>Patrimônio <strong>#${esc(patrimonioId || '???')}</strong> não encontrado.</p>
+        <br/>
+        <button class="btn btn-outline" onclick="window.location.href='index.html'">
+          Voltar ao início
+        </button>
+      </div>`;
+    return;
+  }
+
+  dadosAtuais = p;
+  document.title = `Patrimônio #${p.id} – SUPERVILLE`;
+
+  main.innerHTML = `
+    <div class="patr-layout">
+
+      <!-- ====== COLUNA PRINCIPAL ====== -->
+      <div class="patr-main">
+
+        <!-- Hero -->
+        <div class="patr-hero" id="ficha-print">
+          <div class="patr-hero-top">
+            <div class="patr-id">
+              <small>Patrimônio</small>
+              #${esc(p.id)}
+            </div>
+            <div class="patr-hero-actions">
+              <button class="btn btn-outline" id="btn-editar">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                Editar
+              </button>
+              <button class="btn btn-ghost" id="btn-imprimir">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir
+              </button>
+            </div>
+          </div>
+          <div class="patr-equip">${esc(p.equipamento)}</div>
+          <div class="patr-modelo">${esc(p.modelo)}</div>
+        </div>
+
+        <!-- Dados do Equipamento -->
+        <div class="section-card">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+            Dados do Equipamento
+          </div>
+          <div class="fields-grid">
+            <div class="field-item">
+              <div class="field-label">Patrimônio</div>
+              <div class="field-value">#${esc(p.id)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Equipamento</div>
+              <div class="field-value">${esc(p.equipamento)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Marca / Modelo</div>
+              <div class="field-value">${esc(p.modelo)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Status</div>
+              <div class="field-value">
+                <span class="status-badge ${getStatusClass(p.status)}" id="status-badge-hero">${esc(p.status)}</span>
+              </div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">IMEI</div>
+              <div class="field-value mono">${esc(p.imei)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Número de Série</div>
+              <div class="field-value mono">${esc(p.serie)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Setor</div>
+              <div class="field-value">${esc(p.setor)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Responsável</div>
+              <div class="field-value">${esc(p.responsavel)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Data de Cadastro</div>
+              <div class="field-value">${esc(p.dataCadastro)}</div>
+            </div>
+            <div class="field-item">
+              <div class="field-label">Última Atualização</div>
+              <div class="field-value" id="ultima-atualizacao">${esc(p.ultimaAtualizacao)}</div>
+            </div>
+            <div class="field-item full-width">
+              <div class="field-label">Observações</div>
+              <div class="field-value">${esc(p.observacoes) || '—'}</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Botão Movimentação -->
+        <div style="margin-bottom: 20px;">
+          <button class="btn btn-primary" id="btn-mov" style="font-size:15px;padding:12px 28px;">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            Registrar Movimentação
+          </button>
+        </div>
+
+        <!-- Histórico -->
+        <div class="section-card historico-section" id="historico-section">
+          <div class="section-title">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            Histórico de Movimentações
+          </div>
+          <div class="table-wrap" id="historico-wrap">
+            <!-- Gerado por renderHistorico() -->
+          </div>
+        </div>
+
+      </div><!-- /patr-main -->
+
+      <!-- ====== SIDEBAR ====== -->
+      <aside class="sidebar">
+
+        <!-- QR Code -->
+        <div class="qr-card">
+          <h3>QR Code</h3>
+          <div class="qr-wrapper" id="qr-container"></div>
+          <div class="qr-url" id="qr-url-text"></div>
+        </div>
+
+        <!-- Ações Rápidas -->
+        <div class="actions-card">
+          <h3>Ações Rápidas</h3>
+          <button class="btn btn-primary" id="btn-mov-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+            Registrar Movimentação
+          </button>
+          <button class="btn btn-outline" id="btn-editar-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+            Editar Cadastro
+          </button>
+          <button class="btn btn-ghost" id="btn-imprimir-2">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+            Imprimir Ficha
+          </button>
+          <button class="btn btn-ghost" onclick="window.location.href='index.html'">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+            Ver todos
+          </button>
+        </div>
+
+      </aside>
+
+    </div><!-- /patr-layout -->
+  `;
+
+  // Gerar QR Code
+  gerarQRCode(p.id);
+
+  // Renderizar histórico
+  renderHistorico();
+
+  // Eventos dos botões
+  bindEventos();
+}
+
+// ---- Gerar QR Code ----
+function gerarQRCode(id) {
+  const url = `${BASE_URL}patrimonio.html?id=${id}`;
+  document.getElementById('qr-url-text').textContent = url;
+
+  new QRCode(document.getElementById('qr-container'), {
+    text: url,
+    width: 200,
+    height: 200,
+    colorDark: '#000000',
+    colorLight: '#ffffff',
+    correctLevel: QRCode.CorrectLevel.H
+  });
+}
+
+// ---- Renderizar tabela de histórico ----
+function renderHistorico() {
+  const movs = getMovimentacoes(patrimonioId);
+  const wrap = document.getElementById('historico-wrap');
+
+  if (!wrap) return;
+
+  if (movs.length === 0) {
+    wrap.innerHTML = `
+      <div class="empty-table">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+        <p>Nenhuma movimentação registrada.</p>
+      </div>`;
+    return;
+  }
+
+  let rows = '';
+  movs.forEach(m => {
+    rows += `
+      <tr>
+        <td>${esc(m.data)}</td>
+        <td>${esc(m.hora)}</td>
+        <td>${esc(m.nome)}</td>
+        <td>${esc(m.setor)}</td>
+        <td><span class="tipo-badge ${getTipoClass(m.tipo)}">${esc(m.tipo)}</span></td>
+        <td style="color:var(--cinza);max-width:200px;">${esc(m.obs) || '—'}</td>
+      </tr>`;
+  });
+
+  wrap.innerHTML = `
+    <table>
+      <thead>
+        <tr>
+          <th>Data</th>
+          <th>Hora</th>
+          <th>Nome</th>
+          <th>Setor</th>
+          <th>Tipo</th>
+          <th>Observações</th>
+        </tr>
+      </thead>
+      <tbody>${rows}</tbody>
+    </table>`;
+}
+
+// ---- Abrir / Fechar modals ----
+function abrirModal(id) {
+  document.getElementById(id).classList.add('active');
+  document.body.style.overflow = 'hidden';
+}
+function fecharModal(id) {
+  document.getElementById(id).classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// ---- Preencher form de edição ----
+function preencherFormEdit(p) {
+  document.getElementById('edit-equipamento').value = p.equipamento || '';
+  document.getElementById('edit-modelo').value      = p.modelo     || '';
+  document.getElementById('edit-imei').value        = p.imei       || '';
+  document.getElementById('edit-serie').value       = p.serie      || '';
+  document.getElementById('edit-setor').value       = p.setor      || '';
+  document.getElementById('edit-responsavel').value = p.responsavel || '';
+  document.getElementById('edit-status').value      = p.status     || 'Em uso';
+  document.getElementById('edit-observacoes').value = p.observacoes || '';
+}
+
+// ---- Bindar eventos ----
+function bindEventos() {
+  const p = dadosAtuais;
+
+  // --- Modal Movimentação ---
+  const abrirMov = () => {
+    const { data, hora } = agora();
+    document.getElementById('mov-data').value  = new Date().toISOString().split('T')[0];
+    document.getElementById('mov-hora').value  = hora.replace(':', ':');
+    document.getElementById('mov-nome').value  = '';
+    document.getElementById('mov-setor').value = '';
+    document.getElementById('mov-tipo').value  = '';
+    document.getElementById('mov-obs').value   = '';
+    abrirModal('modal-mov');
+    setTimeout(() => document.getElementById('mov-nome').focus(), 100);
+  };
+
+  document.getElementById('btn-mov').addEventListener('click', abrirMov);
+  document.getElementById('btn-mov-2').addEventListener('click', abrirMov);
+  document.getElementById('modal-close').addEventListener('click', () => fecharModal('modal-mov'));
+  document.getElementById('btn-cancelar').addEventListener('click', () => fecharModal('modal-mov'));
+
+  // Fechar clicando fora
+  document.getElementById('modal-mov').addEventListener('click', e => {
+    if (e.target === e.currentTarget) fecharModal('modal-mov');
+  });
+
+  // Salvar movimentação
+  document.getElementById('btn-salvar-mov').addEventListener('click', () => {
+    const nome  = document.getElementById('mov-nome').value.trim();
+    const setor = document.getElementById('mov-setor').value.trim();
+    const data  = document.getElementById('mov-data').value;
+    const hora  = document.getElementById('mov-hora').value;
+    const tipo  = document.getElementById('mov-tipo').value;
+    const obs   = document.getElementById('mov-obs').value.trim();
+
+    // Validação
+    if (!nome || !setor || !data || !hora || !tipo) {
+      showToast('Preencha todos os campos obrigatórios.', 'error');
+      return;
+    }
+
+    // Formatar data para pt-BR
+    const [ano, mes, dia] = data.split('-');
+    const dataFmt = `${dia}/${mes}/${ano}`;
+
+    salvarMovimentacao(patrimonioId, { nome, setor, data: dataFmt, hora, tipo, obs });
+    fecharModal('modal-mov');
+    renderHistorico();
+    showToast('Movimentação registrada com sucesso!');
+  });
+
+  // --- Modal Editar ---
+  const abrirEdit = () => {
+    preencherFormEdit(dadosAtuais);
+    abrirModal('modal-edit');
+    setTimeout(() => document.getElementById('edit-equipamento').focus(), 100);
+  };
+
+  document.getElementById('btn-editar').addEventListener('click', abrirEdit);
+  document.getElementById('btn-editar-2').addEventListener('click', abrirEdit);
+  document.getElementById('modal-edit-close').addEventListener('click', () => fecharModal('modal-edit'));
+  document.getElementById('btn-edit-cancelar').addEventListener('click', () => fecharModal('modal-edit'));
+
+  document.getElementById('modal-edit').addEventListener('click', e => {
+    if (e.target === e.currentTarget) fecharModal('modal-edit');
+  });
+
+  // Salvar edição
+  document.getElementById('btn-salvar-edit').addEventListener('click', () => {
+    const { data } = agora();
+    const novosDados = {
+      equipamento:      document.getElementById('edit-equipamento').value.trim(),
+      modelo:           document.getElementById('edit-modelo').value.trim(),
+      imei:             document.getElementById('edit-imei').value.trim(),
+      serie:            document.getElementById('edit-serie').value.trim(),
+      setor:            document.getElementById('edit-setor').value.trim(),
+      responsavel:      document.getElementById('edit-responsavel').value.trim(),
+      status:           document.getElementById('edit-status').value,
+      observacoes:      document.getElementById('edit-observacoes').value.trim(),
+      ultimaAtualizacao: data
+    };
+
+    salvarEdicao(patrimonioId, novosDados);
+    dadosAtuais = getPatrimonio(patrimonioId);
+    fecharModal('modal-edit');
+    showToast('Patrimônio atualizado com sucesso!');
+
+    // Re-renderizar a página com os novos dados
+    setTimeout(() => renderPagina(), 400);
+  });
+
+  // --- Imprimir ---
+  const imprimir = () => window.print();
+  document.getElementById('btn-imprimir').addEventListener('click', imprimir);
+  document.getElementById('btn-imprimir-2').addEventListener('click', imprimir);
+
+  // --- Fechar modal com Esc ---
+  document.addEventListener('keydown', e => {
+    if (e.key === 'Escape') {
+      fecharModal('modal-mov');
+      fecharModal('modal-edit');
+    }
+  });
+}
+
+// ============================================================
+// INIT
+// ============================================================
+document.addEventListener('DOMContentLoaded', () => {
+  if (!patrimonioId) {
+    document.getElementById('main-content').innerHTML = `
+      <div class="not-found">
+        <h2>Ops!</h2>
+        <p>Nenhum patrimônio especificado na URL.</p>
+        <br/>
+        <button class="btn btn-outline" onclick="window.location.href='index.html'">
+          Voltar ao início
+        </button>
+      </div>`;
+    return;
+  }
+  renderPagina();
+});
+</script>
+</body>
+</html>
