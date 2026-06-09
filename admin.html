@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin — SuperVille Patrimônio</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='16' fill='%234a9e4a'/><text x='16' y='22' font-size='16' font-weight='900' text-anchor='middle' fill='white' font-family='sans-serif'>🌿</text></svg>"/>
+</head>
+<body>
+
+<!-- ── TELA DE LOGIN ── -->
+<div id="tela-login" class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🌿</div>
+    <h2>Área Administrativa</h2>
+    <p>SuperVille — Controle de Patrimônio</p>
+    <div class="login-erro" id="login-erro">Senha incorreta. Tente novamente.</div>
+    <div class="form-group" style="text-align:left;">
+      <label>Senha</label>
+      <input type="password" id="senha-input" placeholder="Digite a senha" style="font-size:16px;"/>
+    </div>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;font-size:15px;padding:12px;" id="btn-login">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Entrar
+    </button>
+  </div>
+</div>
+
+<!-- ── PAINEL ADMIN ── -->
+<div id="tela-admin" style="display:none;">
+
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">
+      <div class="logo-leaf">🌿</div>
+      <div class="logo-text">
+        <div class="nome">super<span>ville</span></div>
+        <div class="sub">Painel Administrativo</div>
+      </div>
+    </div>
+    <div class="header-actions">
+      <button class="btn-back" onclick="location.href='index.html'">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Início
+      </button>
+      <button class="btn-back" onclick="sair()">Sair</button>
+    </div>
+  </div>
+</header>
+
+<main class="container">
+
+  <div class="page-hero">
+    <h1>PAINEL <span>ADMIN</span></h1>
+    <p>Visão completa de uso, alertas e histórico de todos os patrimônios</p>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-bar">
+    <div class="stat-card">
+      <div class="stat-icon verde">📱</div>
+      <div><div class="stat-num" id="a-total">0</div><div class="stat-label">Total</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon verde">🟢</div>
+      <div><div class="stat-num" id="a-uso">0</div><div class="stat-label">Em Uso</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon cinza">✅</div>
+      <div><div class="stat-num" id="a-disp">0</div><div class="stat-label">Disponíveis</div></div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-icon alerta">🚨</div>
+      <div><div class="stat-num" id="a-atrasado">0</div><div class="stat-label">Atrasados</div></div>
+    </div>
+  </div>
+
+  <!-- ALERTAS DE ATRASO -->
+  <div class="section-card" style="margin-bottom:24px;">
+    <div class="section-header" style="color:#e74c3c;">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#e74c3c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      ⚠️ Alertas — Não devolvidos no prazo (mais de 14h)
+    </div>
+    <div id="alertas-wrap" style="padding:4px 0;"></div>
+  </div>
+
+  <!-- BLOQUEADOS -->
+  <div class="section-card" style="margin-bottom:24px;">
+    <div class="section-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      Funcionários bloqueados (pendência de devolução)
+    </div>
+    <div id="bloqueados-wrap" style="padding:4px 0;"></div>
+  </div>
+
+  <!-- QUEM ESTÁ USANDO AGORA -->
+  <div class="section-card" style="margin-bottom:24px;">
+    <div class="section-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      Quem está usando agora
+    </div>
+    <div id="usando-wrap"></div>
+  </div>
+
+  <!-- HISTÓRICO COMPLETO -->
+  <div class="section-card">
+    <div class="section-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Histórico completo de movimentações
+    </div>
+    <div class="table-wrap" id="historico-completo"></div>
+  </div>
+
+</main>
+</div><!-- /tela-admin -->
+
+<script src="dados.js"></script>
+<script src="script.js"></script>
+<script>
+// ── Login ──
+function tentarLogin() {
+  const v = document.getElementById('senha-input').value;
+  if (v === SENHA_ADMIN) {
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('tela-admin').style.display = 'block';
+    sessionStorage.setItem('sv_admin', '1');
+    renderAdmin();
+  } else {
+    document.getElementById('login-erro').classList.add('show');
+  }
+}
+
+function sair() {
+  sessionStorage.removeItem('sv_admin');
+  location.reload();
+}
+
+// ── Render admin ──
+function renderAdmin() {
+  verificarAtrasos();
+  const todos = getTodosComStatus();
+
+  // Stats
+  document.getElementById('a-total').textContent    = todos.length;
+  document.getElementById('a-uso').textContent      = todos.filter(p => p.status==='Em uso').length;
+  document.getElementById('a-disp').textContent     = todos.filter(p => p.status==='Disponível').length;
+  document.getElementById('a-atrasado').textContent = todos.filter(p => p.status==='Atrasado').length;
+
+  // Alertas de atraso
+  const atrasados = todos.filter(p => p.status === 'Atrasado');
+  const alertasEl = document.getElementById('alertas-wrap');
+  if (!atrasados.length) {
+    alertasEl.innerHTML = '<div class="alertas-vazios">✅ Nenhum aparelho em atraso.</div>';
+  } else {
+    alertasEl.innerHTML = atrasados.map(p => {
+      const uso = getUsoAtivo(p.id);
+      const horas = uso ? ((Date.now()-uso.ts)/3600000).toFixed(1) : '?';
+      return `<div class="alert-row">
+        <div class="info">
+          <span class="icon">🚨</span>
+          <div class="desc">
+            <div class="nome">${esc(uso?.nome||'?')} — ${esc(uso?.setor||'?')}</div>
+            <div class="meta">Patrimônio #${esc(p.id)} (${esc(p.modelo)}) — Retirado em ${esc(uso?.data)} às ${esc(uso?.hora)} — ${horas}h em atraso</div>
+          </div>
+        </div>
+        ${uso?.fotoBase64 ? `<img src="${uso.fotoBase64}" style="width:44px;height:44px;border-radius:50%;object-fit:cover;border:2px solid #e74c3c;" alt="Foto"/>` : ''}
+      </div>`;
+    }).join('');
+  }
+
+  // Bloqueados
+  const bloqueados = getBloqueados();
+  const bloqEl = document.getElementById('bloqueados-wrap');
+  if (!bloqueados.length) {
+    bloqEl.innerHTML = '<div class="alertas-vazios">Nenhum funcionário bloqueado no momento.</div>';
+  } else {
+    bloqEl.innerHTML = bloqueados.map(b => `
+      <div class="alert-row">
+        <div class="info">
+          <span class="icon">⛔</span>
+          <div class="desc">
+            <div class="nome">${esc(b.nome)} — ${esc(b.setor)}</div>
+            <div class="meta">Patrimônio #${esc(b.patrimonioId)} (${esc(b.modelo)}) — Retirou em ${esc(b.dataRetirada)} às ${esc(b.horaRetirada)}</div>
+          </div>
+        </div>
+        <button class="btn btn-ghost" style="font-size:12px;" onclick="desbloquearManual('${esc(b.nome)}','${esc(b.setor)}','${esc(b.patrimonioId)}')">Liberar manualmente</button>
+      </div>`).join('');
+  }
+
+  // Usando agora
+  const emUso = todos.filter(p => p.status === 'Em uso' || p.status === 'Atrasado');
+  const usandoEl = document.getElementById('usando-wrap');
+  if (!emUso.length) {
+    usandoEl.innerHTML = '<div class="alertas-vazios">Nenhum aparelho em uso agora.</div>';
+  } else {
+    usandoEl.innerHTML = `<div class="table-wrap"><table><thead><tr>
+      <th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>Setor</th><th>Retirado em</th><th>Horas</th><th>Status</th><th>Foto</th>
+    </tr></thead><tbody>
+    ${emUso.map(p => {
+      const uso = getUsoAtivo(p.id);
+      const h = uso ? ((Date.now()-uso.ts)/3600000).toFixed(1) : '-';
+      return `<tr>
+        <td><a href="patrimonio.html?id=${p.id}" style="color:var(--verde);font-weight:700;">#${esc(p.id)}</a></td>
+        <td>${esc(p.modelo)}</td>
+        <td>${esc(uso?.nome||'-')}</td>
+        <td>${esc(uso?.setor||'-')}</td>
+        <td>${esc(uso?.data)} ${esc(uso?.hora)}</td>
+        <td style="color:${p.status==='Atrasado'?'#e74c3c':'var(--verde-claro)'};">${h}h</td>
+        <td>${badgeHTML(p.status)}</td>
+        <td>${uso?.fotoBase64?`<img src="${uso.fotoBase64}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);" alt="Foto"/>`:'—'}</td>
+      </tr>`;
+    }).join('')}
+    </tbody></table></div>`;
+  }
+
+  // Histórico completo
+  let todosReg = [];
+  patrimonios.forEach(p => {
+    getHistorico(p.id).forEach(r => todosReg.push({ ...r, patrimonioId: p.id, modelo: p.modelo }));
+  });
+  todosReg.sort((a,b) => {
+    const ta = new Date(`${a.data.split('/').reverse().join('-')}T${a.hora}`).getTime();
+    const tb = new Date(`${b.data.split('/').reverse().join('-')}T${b.hora}`).getTime();
+    return tb - ta;
+  });
+
+  const hEl = document.getElementById('historico-completo');
+  if (!todosReg.length) {
+    hEl.innerHTML = '<div class="empty-table"><p>Nenhuma movimentação registrada ainda.</p></div>';
+  } else {
+    hEl.innerHTML = `<table><thead><tr>
+      <th>Data</th><th>Hora</th><th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>Setor</th><th>Tipo</th>
+    </tr></thead><tbody>
+    ${todosReg.map(r => `<tr>
+      <td>${esc(r.data)}</td><td>${esc(r.hora)}</td>
+      <td><a href="patrimonio.html?id=${r.patrimonioId}" style="color:var(--verde);font-weight:700;">#${esc(r.patrimonioId)}</a></td>
+      <td>${esc(r.modelo)}</td><td>${esc(r.nome)}</td><td>${esc(r.setor)}</td><td>${tipoBadge(r.tipo)}</td>
+    </tr>`).join('')}
+    </tbody></table>`;
+  }
+}
+
+function desbloquearManual(nome, setor, patrimonioId) {
+  if (!confirm(`Liberar manualmente ${nome} (${setor}) e marcar patrimônio #${patrimonioId} como devolvido?`)) return;
+  removerUsoAtivo(patrimonioId);
+  removerBloqueado(nome, setor);
+  const { data, hora } = agora();
+  addHistorico(patrimonioId, { data, hora, nome, setor, tipo: 'Devolução', obs: 'Liberado manualmente pelo admin' });
+  showToast('✅ Liberado com sucesso!');
+  setTimeout(renderAdmin, 400);
+}
+
+// ── Init ──
+document.addEventListener('DOMContentLoaded', () => {
+  if (sessionStorage.getItem('sv_admin') === '1') {
+    document.getElementById('tela-login').style.display = 'none';
+    document.getElementById('tela-admin').style.display = 'block';
+    renderAdmin();
+  }
+  document.getElementById('btn-login').addEventListener('click', tentarLogin);
+  document.getElementById('senha-input').addEventListener('keydown', e => { if (e.key === 'Enter') tentarLogin(); });
+  setInterval(() => { if (sessionStorage.getItem('sv_admin') === '1') renderAdmin(); }, 30000);
+});
+</script>
+</body>
+</html>

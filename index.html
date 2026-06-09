@@ -1,235 +1,153 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Controle de Patrimônio – SUPERVILLE</title>
-  <link rel="stylesheet" href="style.css" />
-  <!-- Favicon inline SVG -->
-  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23b91c1c'/><text x='16' y='24' font-size='20' font-weight='900' text-anchor='middle' fill='white' font-family='sans-serif'>S</text></svg>" />
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SuperVille — Controle de Patrimônio</title>
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='16' fill='%234a9e4a'/><text x='16' y='22' font-size='16' font-weight='900' text-anchor='middle' fill='white' font-family='sans-serif'>🌿</text></svg>"/>
 </head>
 <body>
 
-<!-- ===================== HEADER ===================== -->
 <header class="header">
   <div class="header-inner">
     <div class="logo">
-      <div class="logo-icon">SV</div>
+      <div class="logo-leaf">🌿</div>
       <div class="logo-text">
-        <span>SUPERVILLE</span>
-        <span>Controle de Patrimônio</span>
+        <div class="nome">super<span>ville</span></div>
+        <div class="sub">Controle de Patrimônio</div>
       </div>
     </div>
     <div class="header-actions">
-      <!-- Contador total no header -->
-      <span id="header-total" style="font-size:13px;color:var(--cinza);display:flex;align-items:center;gap:6px;">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-        <span id="header-count">0</span> equipamentos
-      </span>
+      <button class="btn-back" onclick="window.location.href='admin.html'">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        Admin
+      </button>
     </div>
   </div>
 </header>
 
-<!-- ===================== CONTEÚDO ===================== -->
 <main class="container">
-
-  <!-- Título da Página -->
-  <div class="page-title-block">
-    <h1>CONTROLE DE<br><span>PATRIMÔNIO</span></h1>
-    <p>Gerenciamento de celulares corporativos</p>
+  <div class="page-hero">
+    <h1>PATRIMÔNIO<br><span>SUPERVILLE</span></h1>
+    <p>Celulares corporativos — escaneie o QR Code do aparelho para iniciar o uso</p>
   </div>
 
   <!-- Estatísticas -->
-  <div class="stats-bar" id="stats-bar">
+  <div class="stats-bar">
     <div class="stat-card">
-      <div class="stat-icon total">
-        <!-- Ícone celular -->
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-num" id="stat-total">0</span>
-        <span class="stat-label">Total</span>
-      </div>
+      <div class="stat-icon verde">📱</div>
+      <div><div class="stat-num" id="s-total">0</div><div class="stat-label">Total</div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon uso">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-num" id="stat-uso">0</span>
-        <span class="stat-label">Em Uso</span>
-      </div>
+      <div class="stat-icon verde">✅</div>
+      <div><div class="stat-num" id="s-uso">0</div><div class="stat-label">Em Uso</div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon disp">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-num" id="stat-disp">0</span>
-        <span class="stat-label">Disponíveis</span>
-      </div>
+      <div class="stat-icon cinza">🟢</div>
+      <div><div class="stat-num" id="s-disp">0</div><div class="stat-label">Disponíveis</div></div>
     </div>
     <div class="stat-card">
-      <div class="stat-icon manut">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
-      </div>
-      <div class="stat-info">
-        <span class="stat-num" id="stat-manut">0</span>
-        <span class="stat-label">Manutenção</span>
-      </div>
+      <div class="stat-icon alerta">⚠️</div>
+      <div><div class="stat-num" id="s-atrasado">0</div><div class="stat-label">Atrasados</div></div>
     </div>
   </div>
 
-  <!-- Pesquisa e Filtro -->
+  <!-- Pesquisa -->
   <div class="search-bar">
-    <div class="search-input-wrap">
+    <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input
-        type="text"
-        id="search"
-        class="search-input"
-        placeholder="Buscar por patrimônio, IMEI, responsável, setor..."
-        autocomplete="off"
-      />
+      <input type="text" id="busca" class="search-input" placeholder="Buscar por patrimônio, modelo, setor..." autocomplete="off"/>
     </div>
-    <select id="filter-status" class="filter-select">
+    <select id="fil-status" class="filter-select">
       <option value="">Todos os status</option>
-      <option value="Em uso">Em uso</option>
       <option value="Disponível">Disponível</option>
-      <option value="Manutenção">Manutenção</option>
-    </select>
-    <select id="filter-setor" class="filter-select">
-      <option value="">Todos os setores</option>
+      <option value="Em uso">Em uso</option>
+      <option value="Atrasado">Atrasado</option>
     </select>
   </div>
 
-  <!-- Grid de Cartões -->
-  <div class="cards-grid" id="cards-grid">
-    <!-- Gerado por JS -->
+  <!-- Equipamentos em uso / manutenção (visível para funcionários) -->
+  <div class="section-card" style="margin-bottom:24px;" id="secao-em-uso">
+    <div class="section-header">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      Aparelhos em uso ou manutenção agora
+    </div>
+    <div id="lista-em-uso" style="padding:4px 0;"></div>
   </div>
 
+  <!-- Grid de todos os aparelhos -->
+  <div class="cards-grid" id="cards-grid"></div>
 </main>
 
-<!-- Scripts -->
 <script src="dados.js"></script>
 <script src="script.js"></script>
 <script>
-// ============================================================
-// index.js - Lógica da página inicial
-// ============================================================
-
 document.addEventListener('DOMContentLoaded', () => {
-  const todos = getTodosPatrimonios();
+  function render() {
+    const todos = getTodosComStatus();
+    const q     = document.getElementById('busca').value.toLowerCase();
+    const fSt   = document.getElementById('fil-status').value;
 
-  // ---- Estatísticas ----
-  const total = todos.length;
-  const emUso = todos.filter(p => p.status === 'Em uso').length;
-  const disp  = todos.filter(p => p.status === 'Disponível').length;
-  const manut = todos.filter(p => p.status === 'Manutenção').length;
+    // Stats
+    document.getElementById('s-total').textContent    = todos.length;
+    document.getElementById('s-uso').textContent      = todos.filter(p => p.status === 'Em uso').length;
+    document.getElementById('s-disp').textContent     = todos.filter(p => p.status === 'Disponível').length;
+    document.getElementById('s-atrasado').textContent = todos.filter(p => p.status === 'Atrasado').length;
 
-  document.getElementById('stat-total').textContent = total;
-  document.getElementById('stat-uso').textContent   = emUso;
-  document.getElementById('stat-disp').textContent  = disp;
-  document.getElementById('stat-manut').textContent = manut;
-  document.getElementById('header-count').textContent = total;
-
-  // ---- Popular filtro de setores ----
-  const setores = [...new Set(todos.map(p => p.setor))].sort();
-  const selSetor = document.getElementById('filter-setor');
-  setores.forEach(s => {
-    const opt = document.createElement('option');
-    opt.value = s; opt.textContent = s;
-    selSetor.appendChild(opt);
-  });
-
-  // ---- Renderizar cartões ----
-  function renderCards(lista) {
-    const grid = document.getElementById('cards-grid');
-    grid.innerHTML = '';
-
-    if (lista.length === 0) {
-      grid.innerHTML = `
-        <div class="no-results">
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <p>Nenhum patrimônio encontrado.</p>
+    // Lista em uso / manutenção
+    const emUso = todos.filter(p => p.status === 'Em uso' || p.status === 'Atrasado');
+    const luEl = document.getElementById('lista-em-uso');
+    if (emUso.length === 0) {
+      luEl.innerHTML = '<div class="alertas-vazios">Nenhum aparelho em uso no momento.</div>';
+    } else {
+      luEl.innerHTML = emUso.map(p => {
+        const uso = getUsoAtivo(p.id);
+        const atrasado = p.status === 'Atrasado';
+        return `<div class="eu-item${atrasado ? '' : ''}">
+          <div class="eu-item-id">#${esc(p.id)}</div>
+          <div class="eu-item-info">
+            <div class="modelo">${esc(p.modelo)}</div>
+            <div class="detalhes">${uso ? `Retirado às ${esc(uso.hora)} de ${esc(uso.data)} — Setor ${esc(uso.setor)}` : ''} ${atrasado ? '⚠️ ATRASADO' : ''}</div>
+          </div>
+          ${badgeHTML(p.status)}
         </div>`;
+      }).join('');
+    }
+
+    // Cards
+    const filtrados = todos.filter(p => {
+      const matchQ  = !q || p.id.includes(q) || p.modelo.toLowerCase().includes(q) || p.setor.toLowerCase().includes(q) || p.equipamento.toLowerCase().includes(q);
+      const matchSt = !fSt || p.status === fSt;
+      return matchQ && matchSt;
+    });
+
+    const grid = document.getElementById('cards-grid');
+    if (filtrados.length === 0) {
+      grid.innerHTML = `<div class="no-results"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>Nenhum resultado encontrado.</p></div>`;
       return;
     }
 
-    lista.forEach(p => {
-      const card = document.createElement('div');
-      card.className = 'patrimonio-card';
-      card.setAttribute('role', 'button');
-      card.setAttribute('tabindex', '0');
-      card.setAttribute('aria-label', `Patrimônio ${p.id} - ${p.modelo}`);
-
-      card.innerHTML = `
-        <div class="card-header">
-          <div class="card-num">
-            <small>PATRIMÔNIO</small>
-            #${esc(p.id)}
-          </div>
-          <span class="status-badge ${getStatusClass(p.status)}">${esc(p.status)}</span>
+    grid.innerHTML = filtrados.map(p => {
+      const uso = getUsoAtivo(p.id);
+      const usoInfo = uso ? `<div class="card-info-item"><label>Usuário</label><span>${esc(uso.nome)}</span></div><div class="card-info-item"><label>Desde</label><span>${esc(uso.hora)}</span></div>` : `<div class="card-info-item"><label>Setor</label><span>${esc(p.setor)}</span></div><div class="card-info-item"><label>Responsável</label><span>${esc(p.responsavel)}</span></div>`;
+      return `<div class="patrimonio-card" onclick="location.href='patrimonio.html?id=${p.id}'" tabindex="0" role="button">
+        <div class="card-num-row">
+          <div class="card-num"><small>Patrimônio</small>#${esc(p.id)}</div>
+          ${badgeHTML(p.status)}
         </div>
         <div class="card-equip">${esc(p.equipamento)}</div>
         <div class="card-modelo">${esc(p.modelo)}</div>
-        <div class="card-divider"></div>
-        <div class="card-meta">
-          <div class="card-meta-item">
-            <span>Setor</span>
-            <span>${esc(p.setor)}</span>
-          </div>
-          <div class="card-meta-item">
-            <span>Responsável</span>
-            <span>${esc(p.responsavel)}</span>
-          </div>
-        </div>
-      `;
-
-      // Clicar ou pressionar Enter abre o patrimônio
-      const abrirPatrimonio = () => {
-        window.location.href = `patrimonio.html?id=${p.id}`;
-      };
-      card.addEventListener('click', abrirPatrimonio);
-      card.addEventListener('keydown', e => {
-        if (e.key === 'Enter' || e.key === ' ') abrirPatrimonio();
-      });
-
-      grid.appendChild(card);
-    });
+        <div class="card-sep"></div>
+        <div class="card-info">${usoInfo}</div>
+      </div>`;
+    }).join('');
   }
 
-  // ---- Filtro e pesquisa ----
-  function filtrar() {
-    const q      = document.getElementById('search').value.toLowerCase().trim();
-    const status = document.getElementById('filter-status').value;
-    const setor  = document.getElementById('filter-setor').value;
-    const todos  = getTodosPatrimonios();
-
-    const filtrados = todos.filter(p => {
-      const matchQ = !q
-        || p.id.toLowerCase().includes(q)
-        || p.imei.toLowerCase().includes(q)
-        || p.responsavel.toLowerCase().includes(q)
-        || p.setor.toLowerCase().includes(q)
-        || p.modelo.toLowerCase().includes(q)
-        || p.equipamento.toLowerCase().includes(q);
-
-      const matchStatus = !status || p.status === status;
-      const matchSetor  = !setor  || p.setor === setor;
-
-      return matchQ && matchStatus && matchSetor;
-    });
-
-    renderCards(filtrados);
-  }
-
-  document.getElementById('search').addEventListener('input', filtrar);
-  document.getElementById('filter-status').addEventListener('change', filtrar);
-  document.getElementById('filter-setor').addEventListener('change', filtrar);
-
-  // Render inicial
-  renderCards(todos);
+  document.getElementById('busca').addEventListener('input', render);
+  document.getElementById('fil-status').addEventListener('change', render);
+  render();
+  setInterval(render, 30000); // atualiza a cada 30s
 });
 </script>
 </body>
