@@ -307,50 +307,74 @@ async function confirmarDev() {
 function bindCam(btnAbrir, btnFoto, btnRef, videoEl, canvasEl, boxEl, prevEl, streamVar, fotoVar, onFoto) {
   document.getElementById(btnAbrir).addEventListener('click', async ()=>{
     const v = document.getElementById(videoEl);
-    v.style.display = 'block';
-
-    // Mostrar feedback enquanto abre
+    const box = document.getElementById(boxEl);
     const btnFotoEl = document.getElementById(btnFoto);
-    btnFotoEl.style.display = 'inline-flex';
-    btnFotoEl.disabled = true;
-    btnFotoEl.textContent = '⏳ Aguardando câmera...';
+    const btnAbrirEl = document.getElementById(btnAbrir);
 
-    const s = await iniciarCamera(v, document.getElementById(boxEl));
-    if (s) {
-      streamVar(s);
-      document.getElementById(btnAbrir).style.display = 'none';
+    btnAbrirEl.disabled = true;
+    btnAbrirEl.textContent = '⏳ Abrindo...';
 
-      // Esperar o vídeo realmente ter frames — funciona em iPhone e Android
-      const esperarVideo = () => new Promise(resolve => {
-        if (v.readyState >= 2 && v.videoWidth > 0) { resolve(); return; }
-        v.addEventListener('canplay', resolve, { once: true });
-        // fallback: libera após 2.5s mesmo assim
-        setTimeout(resolve, 2500);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+        audio: false
+      });
+      streamVar(stream);
+      v.srcObject = stream;
+      v.style.display = 'block';
+      box.classList.add('ativa');
+      btnAbrirEl.style.display = 'none';
+
+      // Aguarda vídeo ter frames reais
+      await new Promise(resolve => {
+        const check = setInterval(() => {
+          if (v.readyState >= 2 && v.videoWidth > 0) {
+            clearInterval(check);
+            resolve();
+          }
+        }, 200);
+        setTimeout(() => { clearInterval(check); resolve(); }, 4000);
       });
 
-      await esperarVideo();
+      btnFotoEl.style.display = 'inline-flex';
       btnFotoEl.disabled = false;
-      btnFotoEl.textContent = '✅ Tirar foto';
-    } else {
-      btnFotoEl.style.display = 'none';
+      btnFotoEl.textContent = '📷 Tirar foto';
+    } catch(e) {
+      btnAbrirEl.disabled = false;
+      btnAbrirEl.textContent = '📷 Abrir câmera';
+      showToast('Erro ao abrir câmera: ' + e.message, 'erro');
     }
   });
   document.getElementById(btnFoto).addEventListener('click', ()=>{
-    const foto = capturarFoto(document.getElementById(videoEl), document.getElementById(canvasEl));
+    const v   = document.getElementById(videoEl);
+    const can = document.getElementById(canvasEl);
+    const w   = v.videoWidth  || 640;
+    const h   = v.videoHeight || 480;
+    can.width  = w;
+    can.height = h;
+    can.getContext('2d').drawImage(v, 0, 0, w, h);
+    const foto = can.toDataURL('image/jpeg', 0.8);
     onFoto(foto);
-    pararStream(streamVar());
-    document.getElementById(videoEl).style.display = 'none';
+
+    // Parar stream
+    const s = streamVar();
+    if (s) s.getTracks().forEach(t => t.stop());
+    streamVar(null);
+
+    v.style.display = 'none';
     document.getElementById(boxEl).classList.remove('ativa');
     document.getElementById(prevEl).src = foto;
     document.getElementById(prevEl).style.display = 'block';
     document.getElementById(btnFoto).style.display = 'none';
-    document.getElementById(btnRef).style.display = 'inline-flex';
+    document.getElementById(btnRef).style.display  = 'inline-flex';
   });
   document.getElementById(btnRef).addEventListener('click', ()=>{
     onFoto(null);
     document.getElementById(prevEl).style.display = 'none';
     document.getElementById(btnRef).style.display = 'none';
     document.getElementById(btnAbrir).style.display = 'inline-flex';
+    document.getElementById(btnAbrir).disabled = false;
+    document.getElementById(btnAbrir).textContent = '📷 Abrir câmera';
   });
 }
 
@@ -361,15 +385,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
   // Câmera uso
   let _sUso = null;
   bindCam('btn-cam','btn-foto','btn-refazer','cam-video','cam-canvas','cam-box','foto-prev',
-    (s)=>{ if(s!==undefined) _sUso=s; return _sUso; },
-    (f)=>{ fotoUso=f; }
+    (s)=>{ if(s !== undefined) _sUso = s; return _sUso; },
+    (f)=>{ fotoUso = f; }
   );
 
   // Câmera dev
   let _sDev = null;
   bindCam('btn-cam-dev','btn-foto-dev','btn-refazer-dev','cam-video-dev','cam-canvas-dev','cam-box-dev','foto-prev-dev',
-    (s)=>{ if(s!==undefined) _sDev=s; return _sDev; },
-    (f)=>{ fotoDev=f; }
+    (s)=>{ if(s !== undefined) _sDev = s; return _sDev; },
+    (f)=>{ fotoDev = f; }
   );
 
   // Máscara CPF

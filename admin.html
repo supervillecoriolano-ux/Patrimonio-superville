@@ -129,16 +129,20 @@ let todosUsos = {};
 
 // ── Login ──
 function tentarLogin() {
-  if (document.getElementById('senha-input').value === SENHA_ADMIN) {
+  const senha = document.getElementById('senha-input').value;
+  if (senha === SENHA_ADMIN) {
     document.getElementById('tela-login').style.display = 'none';
     document.getElementById('tela-admin').style.display = 'block';
     sessionStorage.setItem('sv_admin','1');
     iniciarAdmin();
   } else {
     document.getElementById('login-erro').classList.add('show');
+    document.getElementById('senha-input').value = '';
+    document.getElementById('senha-input').focus();
   }
 }
 window.sair = ()=>{ sessionStorage.removeItem('sv_admin'); location.reload(); };
+window.tentarLogin = tentarLogin;
 
 // ── Tabs ──
 document.querySelectorAll('.tab-btn').forEach(btn=>{
