@@ -183,10 +183,14 @@ export function pararStream(stream) {
 }
 
 export function capturarFoto(videoEl, canvasEl) {
-  canvasEl.width  = videoEl.videoWidth  || 320;
-  canvasEl.height = videoEl.videoHeight || 240;
-  canvasEl.getContext('2d').drawImage(videoEl, 0, 0);
-  return canvasEl.toDataURL('image/jpeg', 0.65);
+  const w = videoEl.videoWidth  || videoEl.offsetWidth  || 320;
+  const h = videoEl.videoHeight || videoEl.offsetHeight || 240;
+  canvasEl.width  = w;
+  canvasEl.height = h;
+  const ctx = canvasEl.getContext('2d');
+  // Sem espelho - foto normal
+  ctx.drawImage(videoEl, 0, 0, w, h);
+  return canvasEl.toDataURL('image/jpeg', 0.7);
 }
 
 // ── Editar dados do patrimônio no Firestore ──

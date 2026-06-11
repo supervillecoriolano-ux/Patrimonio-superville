@@ -35,7 +35,11 @@
     <div class="modal-body">
       <div class="form-row">
         <div class="form-group"><label>Nome completo *</label><input type="text" id="u-nome" placeholder="Seu nome"/></div>
+        <div class="form-group"><label>CPF *</label><input type="text" id="u-cpf" placeholder="000.000.000-00" maxlength="14"/></div>
+      </div>
+      <div class="form-row">
         <div class="form-group"><label>Setor *</label><input type="text" id="u-setor" placeholder="Ex: Prevenção"/></div>
+        <div class="form-group"></div>
       </div>
       <div class="form-row">
         <div class="form-group"><label>Data</label><input type="text" id="u-data" readonly/></div>
@@ -223,6 +227,7 @@ function abrirUso() {
   document.getElementById('u-data').value = data;
   document.getElementById('u-hora').value = hora;
   document.getElementById('u-nome').value = '';
+  document.getElementById('u-cpf').value = '';
   document.getElementById('u-setor').value = '';
   document.getElementById('u-motivo').value = '';
   document.getElementById('char-motivo').textContent = '0/150';
@@ -254,9 +259,11 @@ function abrirDev() {
 
 async function confirmarUso() {
   const nome   = document.getElementById('u-nome').value.trim();
+  const cpf    = document.getElementById('u-cpf').value.trim();
   const setor  = document.getElementById('u-setor').value.trim();
   const motivo = document.getElementById('u-motivo').value.trim();
-  if (!nome||!setor)  { showToast('Preencha nome e setor.','erro'); return; }
+  if (!nome||!cpf||!setor) { showToast('Preencha nome, CPF e setor.','erro'); return; }
+  if (cpf.replace(/\D/g,'').length < 11) { showToast('CPF inválido. Digite os 11 dígitos.','erro'); return; }
   if (!motivo)        { showToast('Informe o motivo do uso.','erro'); return; }
   if (!fotoUso)       { showToast('Tire a foto do rosto para continuar.','erro'); return; }
 
@@ -269,8 +276,8 @@ async function confirmarUso() {
   const {data,hora,ts} = agora();
   pararStream(streamUso); streamUso = null;
 
-  await setUsoAtivo(pid, { nome, setor, motivo, data, hora, ts, fotoBase64: fotoUso, modelo: dadosPatrimonio?.modelo||'' });
-  await addHistorico(pid, { nome, setor, tipo:'Retirada', motivo, data, hora });
+  await setUsoAtivo(pid, { nome, cpf, setor, motivo, data, hora, ts, fotoBase64: fotoUso, modelo: dadosPatrimonio?.modelo||'' });
+  await addHistorico(pid, { nome, cpf, setor, tipo:'Retirada', motivo, data, hora });
 
   fecharModal('modal-uso');
   showToast('✅ Uso iniciado com sucesso!');
@@ -301,11 +308,31 @@ function bindCam(btnAbrir, btnFoto, btnRef, videoEl, canvasEl, boxEl, prevEl, st
   document.getElementById(btnAbrir).addEventListener('click', async ()=>{
     const v = document.getElementById(videoEl);
     v.style.display = 'block';
+
+    // Mostrar feedback enquanto abre
+    const btnFotoEl = document.getElementById(btnFoto);
+    btnFotoEl.style.display = 'inline-flex';
+    btnFotoEl.disabled = true;
+    btnFotoEl.textContent = '⏳ Aguardando câmera...';
+
     const s = await iniciarCamera(v, document.getElementById(boxEl));
     if (s) {
       streamVar(s);
       document.getElementById(btnAbrir).style.display = 'none';
-      document.getElementById(btnFoto).style.display = 'inline-flex';
+
+      // Esperar o vídeo realmente ter frames — funciona em iPhone e Android
+      const esperarVideo = () => new Promise(resolve => {
+        if (v.readyState >= 2 && v.videoWidth > 0) { resolve(); return; }
+        v.addEventListener('canplay', resolve, { once: true });
+        // fallback: libera após 2.5s mesmo assim
+        setTimeout(resolve, 2500);
+      });
+
+      await esperarVideo();
+      btnFotoEl.disabled = false;
+      btnFotoEl.textContent = '✅ Tirar foto';
+    } else {
+      btnFotoEl.style.display = 'none';
     }
   });
   document.getElementById(btnFoto).addEventListener('click', ()=>{
@@ -344,6 +371,15 @@ document.addEventListener('DOMContentLoaded', ()=>{
     (s)=>{ if(s!==undefined) _sDev=s; return _sDev; },
     (f)=>{ fotoDev=f; }
   );
+
+  // Máscara CPF
+  document.getElementById('u-cpf').addEventListener('input', function(){
+    let v = this.value.replace(/\D/g,'').slice(0,11);
+    if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
+    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
+    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
+    this.value = v;
+  });
 
   // Contador motivo
   document.getElementById('u-motivo').addEventListener('input', function(){

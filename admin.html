@@ -16,7 +16,7 @@
     <p>SuperVille — Controle de Patrimônio</p>
     <div class="login-erro" id="login-erro">Senha incorreta.</div>
     <div class="form-group" style="text-align:left;"><label>Senha</label><input type="password" id="senha-input" placeholder="Digite a senha" style="font-size:16px;"/></div>
-    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px;" id="btn-login">🔐 Entrar</button>
+    <button class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;font-size:15px;" id="btn-login" type="button">🔐 Entrar</button>
   </div>
 </div>
 
@@ -117,13 +117,14 @@
 <script src="dados.js"></script>
 <script type="module">
 import {
-  db, SENHA_ADMIN, esc, agora, showToast, abrirModal, fecharModal,
+  esc, agora, showToast, abrirModal, fecharModal,
   listenUsos, getTodosUsos, getUsoAtivo, removerUsoAtivo,
   addHistorico, getHistorico, getBloqueados, removerBloqueado,
   calcStatusComUso, badgeHTML, tipoBadge, verificarAtrasos,
   salvarEdicaoPatrimonio, getEdicaoPatrimonio, HORAS_DEVOLUCAO
 } from './script.js';
 
+const SENHA_ADMIN = '1234';
 let todosUsos = {};
 
 // ── Login ──
@@ -179,7 +180,7 @@ function renderDashboard() {
   const el = document.getElementById('usando-wrap');
   if (!emUso.length) { el.innerHTML='<div class="alertas-vazios">Nenhum aparelho em uso agora.</div>'; return; }
   el.innerHTML=`<div class="table-wrap"><table><thead><tr>
-    <th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>Setor</th><th>Motivo</th><th>Retirado em</th><th>Horas</th><th>Status</th><th>Foto</th>
+    <th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>CPF</th><th>Setor</th><th>Motivo</th><th>Retirado em</th><th>Horas</th><th>Status</th><th>Foto</th>
   </tr></thead><tbody>
   ${emUso.map(p=>{
     const uso = todosUsos[p.id];
@@ -235,7 +236,7 @@ async function carregarHistoricoCompleto() {
   });
   if (!todos.length) { el.innerHTML='<div class="empty-table"><p>Nenhuma movimentação registrada.</p></div>'; return; }
   el.innerHTML=`<div class="table-wrap"><table><thead><tr>
-    <th>Data</th><th>Hora</th><th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>Setor</th><th>Tipo</th><th>Motivo</th>
+    <th>Data</th><th>Hora</th><th>Patrimônio</th><th>Modelo</th><th>Nome</th><th>CPF</th><th>Setor</th><th>Tipo</th><th>Motivo</th>
   </tr></thead><tbody>
   ${todos.map(r=>`<tr>
     <td>${esc(r.data)}</td><td>${esc(r.hora)}</td>
