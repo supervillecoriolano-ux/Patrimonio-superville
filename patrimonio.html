@@ -382,19 +382,9 @@ document.addEventListener('DOMContentLoaded', ()=>{
   if (!pid) { document.getElementById('main').innerHTML = '<div class="not-found"><h2>Ops!</h2><p>Nenhum ID informado.</p></div>'; return; }
   render();
 
-  // Câmera uso
-  let _sUso = null;
-  bindCam('btn-cam','btn-foto','btn-refazer','cam-video','cam-canvas','cam-box','foto-prev',
-    (s)=>{ if(s !== undefined) _sUso = s; return _sUso; },
-    (f)=>{ fotoUso = f; }
-  );
-
-  // Câmera dev
-  let _sDev = null;
-  bindCam('btn-cam-dev','btn-foto-dev','btn-refazer-dev','cam-video-dev','cam-canvas-dev','cam-box-dev','foto-prev-dev',
-    (s)=>{ if(s !== undefined) _sDev = s; return _sDev; },
-    (f)=>{ fotoDev = f; }
-  );
+  // Receber fotos capturadas pelo script normal
+  window.addEventListener('sv_foto_uso', e => { fotoUso = e.detail; });
+  window.addEventListener('sv_foto_dev', e => { fotoDev = e.detail; });
 
   // Máscara CPF
   document.getElementById('u-cpf').addEventListener('input', function(){
@@ -421,6 +411,107 @@ document.addEventListener('DOMContentLoaded', ()=>{
   ['mc-dev','btn-cancelar-dev'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{ pararStream(_sDev); fecharModal('modal-dev'); }));
   ['modal-uso','modal-dev'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{ if(e.target===e.currentTarget){ pararStream(_sUso);pararStream(_sDev);fecharModal(id); } }));
   document.addEventListener('keydown',e=>{ if(e.key==='Escape'){pararStream(_sUso);pararStream(_sDev);fecharModal('modal-uso');fecharModal('modal-dev');} });
+});
+</script>
+<script>
+// ── Câmera — script normal (fora do ES module) para compatibilidade Safari/iOS ──
+var _streamUso = null;
+var _streamDev = null;
+var _fotoUso   = null;
+var _fotoDev   = null;
+
+function sv_abrirCam(videoId, boxId, btnAbrirId, btnFotoId) {
+  var btn = document.getElementById(btnAbrirId);
+  if (btn) btn.disabled = true;
+
+  navigator.mediaDevices.getUserMedia({
+    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
+    audio: false
+  }).then(function(stream) {
+    if (videoId === 'cam-video') _streamUso = stream;
+    else _streamDev = stream;
+
+    var v = document.getElementById(videoId);
+    v.srcObject = stream;
+    v.style.display = 'block';
+    document.getElementById(boxId).classList.add('ativa');
+    document.getElementById(btnAbrirId).style.display = 'none';
+
+    // Aguardar vídeo ter frames
+    var check = setInterval(function() {
+      if (v.readyState >= 2 && v.videoWidth > 0) {
+        clearInterval(check);
+        var btnF = document.getElementById(btnFotoId);
+        btnF.style.display = 'inline-flex';
+        btnF.disabled = false;
+      }
+    }, 150);
+    setTimeout(function() {
+      clearInterval(check);
+      var btnF = document.getElementById(btnFotoId);
+      if (btnF) { btnF.style.display = 'inline-flex'; btnF.disabled = false; }
+    }, 3000);
+
+  }).catch(function(e) {
+    if (btn) { btn.disabled = false; }
+    alert('Não foi possível abrir a câmera: ' + e.message);
+  });
+}
+
+function sv_tirarFoto(videoId, canvasId, prevId, btnFotoId, btnRefId, tipo) {
+  var v   = document.getElementById(videoId);
+  var can = document.getElementById(canvasId);
+  var w   = v.videoWidth  || 640;
+  var h   = v.videoHeight || 480;
+  can.width  = w;
+  can.height = h;
+  can.getContext('2d').drawImage(v, 0, 0, w, h);
+  var foto = can.toDataURL('image/jpeg', 0.8);
+
+  // Parar stream
+  var stream = tipo === 'uso' ? _streamUso : _streamDev;
+  if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
+  if (tipo === 'uso') { _streamUso = null; _fotoUso = foto; }
+  else               { _streamDev = null; _fotoDev = foto; }
+
+  v.style.display = 'none';
+  document.getElementById(videoId.replace('video','box').replace('cam-','cam-box').split('-video')[0] + (tipo==='uso'?'cam-box':'cam-box-dev')).classList.remove('ativa');
+  document.getElementById(prevId).src = foto;
+  document.getElementById(prevId).style.display = 'block';
+  document.getElementById(btnFotoId).style.display = 'none';
+  document.getElementById(btnRefId).style.display  = 'inline-flex';
+
+  // Notificar module ES
+  window.dispatchEvent(new CustomEvent('sv_foto_' + tipo, { detail: foto }));
+}
+
+function sv_refazer(tipo, btnAbrirId, btnRefId, prevId) {
+  if (tipo === 'uso') _fotoUso = null;
+  else _fotoDev = null;
+  document.getElementById(prevId).style.display  = 'none';
+  document.getElementById(btnRefId).style.display = 'none';
+  var btnA = document.getElementById(btnAbrirId);
+  btnA.style.display = 'inline-flex';
+  btnA.disabled = false;
+  window.dispatchEvent(new CustomEvent('sv_foto_' + tipo, { detail: null }));
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  // Câmera USO
+  var btnCam    = document.getElementById('btn-cam');
+  var btnFoto   = document.getElementById('btn-foto');
+  var btnRefaz  = document.getElementById('btn-refazer');
+  if (btnCam)   btnCam.addEventListener('click',   function(){ sv_abrirCam('cam-video','cam-box','btn-cam','btn-foto'); });
+  if (btnFoto)  btnFoto.addEventListener('click',  function(){ sv_tirarFoto('cam-video','cam-canvas','foto-prev','btn-foto','btn-refazer','uso'); });
+  if (btnRefaz) btnRefaz.addEventListener('click', function(){ sv_refazer('uso','btn-cam','btn-refazer','foto-prev'); });
+
+  // Câmera DEV
+  var btnCamD   = document.getElementById('btn-cam-dev');
+  var btnFotoD  = document.getElementById('btn-foto-dev');
+  var btnRefazD = document.getElementById('btn-refazer-dev');
+  if (btnCamD)   btnCamD.addEventListener('click',   function(){ sv_abrirCam('cam-video-dev','cam-box-dev','btn-cam-dev','btn-foto-dev'); });
+  if (btnFotoD)  btnFotoD.addEventListener('click',  function(){ sv_tirarFoto('cam-video-dev','cam-canvas-dev','foto-prev-dev','btn-foto-dev','btn-refazer-dev','dev'); });
+  if (btnRefazD) btnRefazD.addEventListener('click', function(){ sv_refazer('dev','btn-cam-dev','btn-refazer-dev','foto-prev-dev'); });
 });
 </script>
 </body>
