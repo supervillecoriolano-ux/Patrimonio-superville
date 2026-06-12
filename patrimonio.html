@@ -1,11 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Patrimônio — SuperVille</title>
-  <link rel="stylesheet" href="style.css"/>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Patrimônio — SuperVille</title>
+<link rel="stylesheet" href="style.css"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="dados.js"></script>
 </head>
 <body>
 <header class="header">
@@ -18,50 +21,41 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-back" onclick="location.href='index.html'">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
-        Voltar
-      </button>
+      <button class="btn-back" onclick="location.href='index.html'">← Voltar</button>
     </div>
   </div>
 </header>
-
 <main class="container" id="main"><div class="loading"><div class="spinner"></div><span>Carregando...</span></div></main>
 
 <!-- MODAL INICIAR USO -->
 <div class="modal-overlay" id="modal-uso">
   <div class="modal">
-    <div class="modal-header"><h2>🟢 Iniciar Uso</h2><button class="modal-close" id="mc-uso">&times;</button></div>
+    <div class="modal-header"><h2>🟢 Iniciar Uso</h2><button class="modal-close" onclick="fecharModal('modal-uso')">&times;</button></div>
     <div class="modal-body">
       <div class="form-row">
-        <div class="form-group"><label>Nome completo *</label><input type="text" id="u-nome" placeholder="Seu nome"/></div>
-        <div class="form-group"><label>CPF *</label><input type="text" id="u-cpf" placeholder="000.000.000-00" maxlength="14"/></div>
+        <div class="form-group"><label>Nome completo *</label><input type="text" id="u-nome" placeholder="Seu nome completo"/></div>
+        <div class="form-group"><label>CPF *</label><input type="text" id="u-cpf" placeholder="000.000.000-00" maxlength="14" oninput="mascaraCPF(this)"/></div>
       </div>
-      <div class="form-row">
-        <div class="form-group"><label>Setor *</label><input type="text" id="u-setor" placeholder="Ex: Prevenção"/></div>
-        <div class="form-group"></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label>Data</label><input type="text" id="u-data" readonly/></div>
-        <div class="form-group"><label>Hora</label><input type="text" id="u-hora" readonly/></div>
-      </div>
+      <div class="form-group"><label>Setor *</label><input type="text" id="u-setor" placeholder="Ex: Prevenção"/></div>
       <div class="form-group">
-        <label>Motivo do uso * <span id="char-motivo" class="char-count">0/150</span></label>
-        <textarea id="u-motivo" placeholder="Descreva brevemente o motivo do uso deste aparelho..." maxlength="150" rows="3"></textarea>
+        <label>Motivo do uso * <span id="char-count" style="float:right;font-size:11px;color:var(--cinza);">0/150</span></label>
+        <textarea id="u-motivo" placeholder="Descreva o motivo do uso..." maxlength="150" rows="3" oninput="document.getElementById('char-count').textContent=this.value.length+'/150'"></textarea>
       </div>
       <div class="form-group">
         <label>📸 Foto do rosto (obrigatória)</label>
-        <div class="camera-box" id="cam-box"><span>Clique em "Abrir câmera" para continuar</span><video id="cam-video" autoplay playsinline muted style="display:none"></video><canvas id="cam-canvas" style="display:none"></canvas></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-          <button class="btn btn-outline" id="btn-cam" type="button">📷 Abrir câmera</button>
-          <button class="btn btn-primary" id="btn-foto" type="button" style="display:none">✅ Tirar foto</button>
-          <button class="btn btn-ghost" id="btn-refazer" type="button" style="display:none">🔄 Refazer</button>
+        <div id="cam-box" class="camera-box"><span>Toque em "Abrir câmera"</span></div>
+        <video id="cam-video" autoplay playsinline muted style="display:none;width:100%;border-radius:8px;max-height:240px;object-fit:cover;"></video>
+        <canvas id="cam-canvas" style="display:none;"></canvas>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-outline" id="btn-cam-abrir">📷 Abrir câmera</button>
+          <button class="btn btn-primary" id="btn-cam-foto" style="display:none;">✅ Tirar foto</button>
+          <button class="btn btn-ghost" id="btn-cam-refaz" style="display:none;">🔄 Refazer</button>
         </div>
-        <img id="foto-prev" class="foto-preview-sm" style="display:none" alt="Foto"/>
+        <img id="foto-prev" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);margin-top:10px;" alt="Foto"/>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" id="btn-cancelar-uso">Cancelar</button>
+      <button class="btn btn-ghost" onclick="fecharModal('modal-uso')">Cancelar</button>
       <button class="btn btn-primary" id="btn-confirmar-uso">✅ Confirmar uso</button>
     </div>
   </div>
@@ -70,448 +64,346 @@
 <!-- MODAL DEVOLVER -->
 <div class="modal-overlay" id="modal-dev">
   <div class="modal">
-    <div class="modal-header"><h2>↩️ Devolver aparelho</h2><button class="modal-close" id="mc-dev">&times;</button></div>
+    <div class="modal-header"><h2>↩️ Devolver aparelho</h2><button class="modal-close" onclick="fecharModal('modal-dev')">&times;</button></div>
     <div class="modal-body">
       <p style="color:var(--branco-2);font-size:14px;margin-bottom:16px;">Tire uma foto do rosto para confirmar a devolução.</p>
-      <div class="form-row">
-        <div class="form-group"><label>Data devolução</label><input type="text" id="d-data" readonly/></div>
-        <div class="form-group"><label>Hora devolução</label><input type="text" id="d-hora" readonly/></div>
-      </div>
       <div class="form-group">
         <label>📸 Foto de confirmação (obrigatória)</label>
-        <div class="camera-box" id="cam-box-dev"><span>Clique em "Abrir câmera" para continuar</span><video id="cam-video-dev" autoplay playsinline muted style="display:none"></video><canvas id="cam-canvas-dev" style="display:none"></canvas></div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:4px;">
-          <button class="btn btn-outline" id="btn-cam-dev" type="button">📷 Abrir câmera</button>
-          <button class="btn btn-primary" id="btn-foto-dev" type="button" style="display:none">✅ Tirar foto</button>
-          <button class="btn btn-ghost" id="btn-refazer-dev" type="button" style="display:none">🔄 Refazer</button>
+        <div id="cam-box-dev" class="camera-box"><span>Toque em "Abrir câmera"</span></div>
+        <video id="cam-video-dev" autoplay playsinline muted style="display:none;width:100%;border-radius:8px;max-height:240px;object-fit:cover;"></video>
+        <canvas id="cam-canvas-dev" style="display:none;"></canvas>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px;">
+          <button class="btn btn-outline" id="btn-dev-abrir">📷 Abrir câmera</button>
+          <button class="btn btn-primary" id="btn-dev-foto" style="display:none;">✅ Tirar foto</button>
+          <button class="btn btn-ghost" id="btn-dev-refaz" style="display:none;">🔄 Refazer</button>
         </div>
-        <img id="foto-prev-dev" class="foto-preview-sm" style="display:none" alt="Foto"/>
+        <img id="foto-prev-dev" style="display:none;width:80px;height:80px;border-radius:50%;object-fit:cover;border:2px solid var(--verde);margin-top:10px;" alt="Foto dev"/>
       </div>
     </div>
     <div class="modal-footer">
-      <button class="btn btn-ghost" id="btn-cancelar-dev">Cancelar</button>
+      <button class="btn btn-ghost" onclick="fecharModal('modal-dev')">Cancelar</button>
       <button class="btn btn-primary" id="btn-confirmar-dev">↩️ Confirmar devolução</button>
     </div>
   </div>
 </div>
 
-<script src="dados.js"></script>
-<script type="module">
-import { db } from './firebase-config.js';
-import {
-  getUsoAtivo, setUsoAtivo, removerUsoAtivo, addHistorico,
-  getHistorico, getEdicaoPatrimonio, estaBloqueado, addBloqueado, removerBloqueado,
-  calcStatusComUso, badgeHTML, tipoBadge, esc, agora, showToast,
-  abrirModal, fecharModal, iniciarCamera, pararStream, capturarFoto, spinner,
-  HORAS_DEVOLUCAO
-} from './script.js';
+<script>
+// ============================================================
+// SUPERVILLE — patrimonio.html (sem ES Modules)
+// ============================================================
+var HORAS_DEV  = 14;
+var SENHA_ADMIN = '1234';
+var pid         = new URLSearchParams(location.search).get('id');
+var BASE        = location.origin + location.pathname.replace('patrimonio.html','');
+var fotoUso     = null;
+var fotoDev     = null;
+var streamUso   = null;
+var streamDev   = null;
+var dadosP      = null;
 
-const params = new URLSearchParams(location.search);
-const pid    = params.get('id');
-const BASE   = location.origin + location.pathname.replace('patrimonio.html','');
+// Firebase compat
+firebase.initializeApp({
+  apiKey: "AIzaSyAGYYSZvRNU3S8V42IMrRY65JciMiNNkgg",
+  authDomain: "superville-patrimonio.firebaseapp.com",
+  projectId: "superville-patrimonio",
+  storageBucket: "superville-patrimonio.firebasestorage.app",
+  messagingSenderId: "843390838064",
+  appId: "1:843390838064:web:37c75a9df17dc799b3d4f5"
+});
+var db = firebase.firestore();
 
-let fotoUso = null, fotoDev = null;
-let streamUso = null, streamDev = null;
-let dadosPatrimonio = null;
+// ── Helpers ──
+function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+function agora(){ var d=new Date(); return { data:d.toLocaleDateString('pt-BR'), hora:d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), ts:d.getTime() }; }
+function badgeHTML(status){ var cls={'Disponível':'badge-disponivel','Em uso':'badge-uso','Atrasado':'badge-atrasado','Manutenção':'badge-manutencao'}; return '<span class="badge '+(cls[status]||'badge-disponivel')+'">'+status+'</span>'; }
+function tipoBadge(tipo){ var cls={'Retirada':'tipo-retirada','Devolução':'tipo-devolucao'}; return '<span class="badge '+(cls[tipo]||'')+'">'+esc(tipo)+'</span>'; }
+function calcStatus(uso){ if(!uso)return'Disponível'; return (Date.now()-uso.ts)/3600000>HORAS_DEV?'Atrasado':'Em uso'; }
+function mascaraCPF(el){ var v=el.value.replace(/\D/g,'').slice(0,11); if(v.length>9)v=v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'..-'); else if(v.length>6)v=v.replace(/(\d{3})(\d{3})(\d{1,3})/,'..'); else if(v.length>3)v=v.replace(/(\d{3})(\d{1,3})/,'.'); el.value=v; }
 
-async function render() {
-  const main = document.getElementById('main');
-  const base = patrimonios.find(p=>p.id===pid);
-  if (!base) {
-    main.innerHTML = `<div class="not-found"><h2>404</h2><p>Patrimônio <strong>#${esc(pid||'?')}</strong> não encontrado.</p><button class="btn btn-outline" onclick="location.href='index.html'">Voltar</button></div>`;
-    return;
+function abrirModal(id){ document.getElementById(id).classList.add('active'); document.body.style.overflow='hidden'; }
+function fecharModal(id){ document.getElementById(id).classList.remove('active'); document.body.style.overflow=''; pararCam(); }
+
+function showToast(msg, tipo){
+  var old=document.getElementById('_toast'); if(old)old.remove();
+  var t=document.createElement('div'); t.id='_toast'; t.className='toast'+(tipo==='erro'?' erro':'');
+  t.innerHTML=(tipo==='erro'?'❌ ':'✅ ')+msg; document.body.appendChild(t);
+  setTimeout(function(){ t.classList.add('show'); },10);
+  setTimeout(function(){ t.classList.remove('show'); setTimeout(function(){ t.remove(); },400); },3500);
+}
+
+function pararCam(){
+  if(streamUso){ streamUso.getTracks().forEach(function(t){t.stop();}); streamUso=null; }
+  if(streamDev){ streamDev.getTracks().forEach(function(t){t.stop();}); streamDev=null; }
+}
+
+// ── Câmera (lógica simples e direta) ──
+function abrirCamera(tipo){
+  var isUso = tipo==='uso';
+  var videoEl  = document.getElementById(isUso?'cam-video':'cam-video-dev');
+  var boxEl    = document.getElementById(isUso?'cam-box':'cam-box-dev');
+  var btnAbrir = document.getElementById(isUso?'btn-cam-abrir':'btn-dev-abrir');
+  var btnFoto  = document.getElementById(isUso?'btn-cam-foto':'btn-dev-foto');
+
+  btnAbrir.textContent='⏳ Aguarde...';
+  btnAbrir.disabled=true;
+
+  navigator.mediaDevices.getUserMedia({ video:{ facingMode:'user' }, audio:false })
+  .then(function(stream){
+    if(isUso) streamUso=stream; else streamDev=stream;
+    videoEl.srcObject=stream;
+    videoEl.style.display='block';
+    boxEl.innerHTML='';
+    boxEl.classList.add('ativa');
+    btnAbrir.style.display='none';
+
+    // Aguardar frames reais com polling
+    var tentativas=0;
+    var check=setInterval(function(){
+      tentativas++;
+      if((videoEl.readyState>=2 && videoEl.videoWidth>0) || tentativas>30){
+        clearInterval(check);
+        btnFoto.style.display='inline-flex';
+        btnFoto.disabled=false;
+      }
+    },100);
+  })
+  .catch(function(err){
+    btnAbrir.textContent='📷 Abrir câmera';
+    btnAbrir.disabled=false;
+    showToast('Erro na câmera: '+err.message,'erro');
+  });
+}
+
+function tirarFoto(tipo){
+  var isUso = tipo==='uso';
+  var videoEl  = document.getElementById(isUso?'cam-video':'cam-video-dev');
+  var canvasEl = document.getElementById(isUso?'cam-canvas':'cam-canvas-dev');
+  var prevEl   = document.getElementById(isUso?'foto-prev':'foto-prev-dev');
+  var btnFoto  = document.getElementById(isUso?'btn-cam-foto':'btn-dev-foto');
+  var btnRefaz = document.getElementById(isUso?'btn-cam-refaz':'btn-dev-refaz');
+  var stream   = isUso?streamUso:streamDev;
+
+  var w=videoEl.videoWidth||320, h=videoEl.videoHeight||240;
+  canvasEl.width=w; canvasEl.height=h;
+  canvasEl.getContext('2d').drawImage(videoEl,0,0,w,h);
+  var foto=canvasEl.toDataURL('image/jpeg',0.8);
+
+  if(isUso) fotoUso=foto; else fotoDev=foto;
+
+  if(stream){ stream.getTracks().forEach(function(t){t.stop();}); }
+  if(isUso) streamUso=null; else streamDev=null;
+
+  videoEl.style.display='none';
+  prevEl.src=foto; prevEl.style.display='block';
+  btnFoto.style.display='none';
+  btnRefaz.style.display='inline-flex';
+}
+
+function refazerFoto(tipo){
+  var isUso=tipo==='uso';
+  if(isUso) fotoUso=null; else fotoDev=null;
+  document.getElementById(isUso?'foto-prev':'foto-prev-dev').style.display='none';
+  document.getElementById(isUso?'btn-cam-refaz':'btn-dev-refaz').style.display='none';
+  var btnAbrir=document.getElementById(isUso?'btn-cam-abrir':'btn-dev-abrir');
+  btnAbrir.style.display='inline-flex'; btnAbrir.disabled=false; btnAbrir.textContent='📷 Abrir câmera';
+  document.getElementById(isUso?'cam-box':'cam-box-dev').classList.remove('ativa');
+}
+
+// ── Render principal ──
+function renderPagina(uso){
+  var base=patrimonios.find(function(p){return p.id===pid;});
+  if(!base){ document.getElementById('main').innerHTML='<div class="not-found"><h2>404</h2><p>Patrimônio não encontrado.</p><button class="btn btn-outline" onclick="location.href=\'index.html\'">Voltar</button></div>'; return; }
+
+  dadosP=base;
+  var status=calcStatus(uso);
+  var horas=uso?((Date.now()-uso.ts)/3600000).toFixed(1):null;
+  var atrasado=status==='Atrasado';
+
+  var usoHTML='';
+  if(uso){
+    usoHTML='<div class="uso-ativo-box">'+
+      '<h4>🟢 Em uso agora</h4>'+
+      (atrasado?'<div class="atrasado-aviso">⚠️ Prazo de '+HORAS_DEV+'h excedido!</div>':'')+
+      '<div class="uso-pessoa">'+
+      (uso.fotoBase64?'<img src="'+uso.fotoBase64+'" class="uso-foto-thumb" alt="Foto"/>':'')+
+      '<div class="uso-pessoa-info"><div class="nome">'+esc(uso.nome)+'</div>'+
+      '<div class="setor-txt">CPF: '+esc(uso.cpf||'—')+' | '+esc(uso.setor)+'</div></div></div>'+
+      '<div class="uso-detalhes">'+
+      '<div><div class="field-label">Retirado em</div><div class="field-value">'+esc(uso.data)+' às '+esc(uso.hora)+'</div></div>'+
+      '<div><div class="field-label">Horas em uso</div><div class="field-value" style="color:'+(atrasado?'#e74c3c':'var(--verde-claro)')+'">'+horas+'h</div></div>'+
+      '</div>'+
+      (uso.motivo?'<div class="uso-motivo"><strong>Motivo</strong>'+esc(uso.motivo)+'</div>':'')+
+      '<button class="btn btn-danger" onclick="abrirDev()" style="margin-top:4px;">↩️ Devolver aparelho</button>'+
+      '</div>';
   }
 
-  // Mesclar com edições salvas no Firestore
-  const override = await getEdicaoPatrimonio(pid);
-  const p = override ? {...base,...override} : {...base};
-  dadosPatrimonio = p;
-  document.title = `Patrimônio #${p.id} — SuperVille`;
+  var btnIniciar=!uso?'<div style="margin-bottom:18px;"><button class="btn btn-primary btn-lg" onclick="abrirUso()">▶️ Iniciar uso deste aparelho</button></div>':'';
 
-  const uso      = await getUsoAtivo(pid);
-  const status   = calcStatusComUso(uso);
-  const atrasado = status==='Atrasado';
-  const horas    = uso ? ((Date.now()-uso.ts)/3600000).toFixed(1) : null;
+  document.getElementById('main').innerHTML=
+    '<div class="patr-layout">'+
+    '<div>'+
+    '<div class="patr-hero">'+
+    '<div class="patr-hero-top">'+
+    '<div class="patr-id"><small>Patrimônio</small>#'+esc(base.id)+'</div>'+
+    '<button class="btn btn-ghost" onclick="window.print()">🖨️ Imprimir</button>'+
+    '</div>'+
+    '<div class="patr-equip">'+esc(base.equipamento)+'</div>'+
+    '<div class="patr-modelo">'+esc(base.modelo)+'</div>'+
+    '</div>'+
+    '<div style="margin-bottom:14px;">'+badgeHTML(status)+'</div>'+
+    usoHTML+btnIniciar+
+    '<div class="section-card">'+
+    '<div class="section-header">📱 Dados do equipamento</div>'+
+    '<div class="fields-grid">'+
+    '<div class="field-item"><div class="field-label">IMEI</div><div class="field-value mono">'+esc(base.imei)+'</div></div>'+
+    '<div class="field-item"><div class="field-label">Série</div><div class="field-value mono">'+esc(base.serie)+'</div></div>'+
+    '<div class="field-item"><div class="field-label">Setor</div><div class="field-value">'+esc(base.setor)+'</div></div>'+
+    '<div class="field-item"><div class="field-label">Responsável</div><div class="field-value">'+esc(base.responsavel)+'</div></div>'+
+    '<div class="field-item"><div class="field-label">Cadastrado em</div><div class="field-value">'+esc(base.dataCadastro)+'</div></div>'+
+    '<div class="field-item"><div class="field-label">Observações</div><div class="field-value">'+esc(base.observacoes||'—')+'</div></div>'+
+    '</div></div>'+
+    '<div class="section-card"><div class="section-header">📋 Histórico</div><div id="hist-wrap"><div class="loading"><div class="spinner"></div></div></div></div>'+
+    '</div>'+
+    '<aside>'+
+    '<div class="sidebar-card" style="text-align:center;">'+
+    '<h3>QR Code</h3><div id="qr-box" class="qr-box"></div>'+
+    '<div id="qr-url" class="qr-url"></div>'+
+    '</div></aside></div>';
 
-  let usoHTML = '';
-  if (uso) {
-    usoHTML = `<div class="uso-ativo-box">
-      <h4>🟢 Em uso agora</h4>
-      ${atrasado?'<div class="atrasado-aviso">⚠️ Prazo de '+HORAS_DEVOLUCAO+'h excedido! Devolução em atraso.</div>':''}
-      <div class="uso-pessoa">
-        <img src="${uso.fotoBase64||''}" class="uso-foto-thumb" alt="Foto"/>
-        <div class="uso-pessoa-info"><div class="nome">${esc(uso.nome)}</div><div class="setor-txt">${esc(uso.setor)}</div></div>
-      </div>
-      <div class="uso-detalhes">
-        <div><div class="field-label">Retirado em</div><div class="field-value">${esc(uso.data)} às ${esc(uso.hora)}</div></div>
-        <div><div class="field-label">Horas em uso</div><div class="field-value" style="color:${atrasado?'#e74c3c':'var(--verde-claro)'};">${horas}h ${atrasado?'⚠️':''}</div></div>
-      </div>
-      ${uso.motivo?'<div class="uso-motivo"><strong>Motivo do uso</strong>'+esc(uso.motivo)+'</div>':''}
-      <button class="btn btn-danger" id="btn-devolver">↩️ Devolver aparelho</button>
-    </div>`;
-  }
-
-  const btnIniciar = !uso ? `<div style="margin-bottom:18px;"><button class="btn btn-primary btn-lg" id="btn-iniciar">▶️ Iniciar uso deste aparelho</button></div>` : '';
-
-  main.innerHTML = `<div class="patr-layout">
-    <div>
-      <div class="patr-hero">
-        <div class="patr-hero-top">
-          <div class="patr-id"><small>Patrimônio</small>#${esc(p.id)}</div>
-          <div class="patr-hero-btns">
-            <button class="btn btn-ghost" onclick="window.print()">🖨️ Imprimir</button>
-          </div>
-        </div>
-        <div class="patr-equip">${esc(p.equipamento)}</div>
-        <div class="patr-modelo">${esc(p.modelo)}</div>
-      </div>
-      <div style="margin-bottom:14px;">${badgeHTML(status)}</div>
-      ${usoHTML}
-      ${btnIniciar}
-      <div class="section-card">
-        <div class="section-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>Dados do equipamento</div>
-        <div class="fields-grid">
-          <div class="field-item"><div class="field-label">IMEI</div><div class="field-value mono">${esc(p.imei)}</div></div>
-          <div class="field-item"><div class="field-label">Série</div><div class="field-value mono">${esc(p.serie)}</div></div>
-          <div class="field-item"><div class="field-label">Setor</div><div class="field-value">${esc(p.setor)}</div></div>
-          <div class="field-item"><div class="field-label">Responsável</div><div class="field-value">${esc(p.responsavel)}</div></div>
-          <div class="field-item"><div class="field-label">Cadastrado em</div><div class="field-value">${esc(p.dataCadastro)}</div></div>
-          <div class="field-item"><div class="field-label">Cor / Acessórios</div><div class="field-value">${esc(p.cor||'—')}</div></div>
-          <div class="field-item span2"><div class="field-label">Observações</div><div class="field-value">${esc(p.observacoes)||'—'}</div></div>
-        </div>
-      </div>
-      <div class="section-card">
-        <div class="section-header"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Histórico de movimentações</div>
-        <div id="historico-wrap"><div class="loading"><div class="spinner"></div></div></div>
-      </div>
-    </div>
-    <aside>
-      <div class="sidebar-card" style="text-align:center;">
-        <h3>QR Code</h3>
-        <div class="qr-box" id="qr-box"></div>
-        <div class="qr-url" id="qr-url"></div>
-      </div>
-    </aside>
-  </div>`;
+  document.title='Patrimônio #'+base.id+' — SuperVille';
 
   // QR Code
-  const url = `${BASE}patrimonio.html?id=${p.id}`;
-  document.getElementById('qr-url').textContent = url;
+  var url=BASE+'patrimonio.html?id='+base.id;
+  document.getElementById('qr-url').textContent=url;
   new QRCode(document.getElementById('qr-box'),{text:url,width:180,height:180,colorDark:'#000',colorLight:'#fff',correctLevel:QRCode.CorrectLevel.H});
 
-  // Histórico
   carregarHistorico();
-
-  // Bind eventos
-  if (!uso) document.getElementById('btn-iniciar').addEventListener('click', abrirUso);
-  else       document.getElementById('btn-devolver').addEventListener('click', abrirDev);
 }
 
-async function carregarHistorico() {
-  const wrap = document.getElementById('historico-wrap');
-  if (!wrap) return;
-  const h = await getHistorico(pid);
-  if (!h.length) {
-    wrap.innerHTML = '<div class="empty-table"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg><p>Sem movimentações ainda.</p></div>';
-    return;
-  }
-  wrap.innerHTML = `<div class="table-wrap"><table><thead><tr><th>Data</th><th>Hora</th><th>Nome</th><th>Setor</th><th>Tipo</th><th>Motivo</th></tr></thead><tbody>
-    ${h.map(r=>`<tr><td>${esc(r.data)}</td><td>${esc(r.hora)}</td><td>${esc(r.nome)}</td><td>${esc(r.setor)}</td><td>${tipoBadge(r.tipo)}</td><td style="color:var(--cinza);max-width:160px;">${esc(r.motivo||r.obs||'—')}</td></tr>`).join('')}
-  </tbody></table></div>`;
+function carregarHistorico(){
+  db.collection('historico').doc(pid).collection('movimentacoes')
+  .orderBy('ts','desc').limit(50)
+  .get().then(function(snap){
+    var wrap=document.getElementById('hist-wrap');
+    if(!wrap)return;
+    if(snap.empty){ wrap.innerHTML='<div class="empty-table"><p>Sem movimentações ainda.</p></div>'; return; }
+    var rows='';
+    snap.forEach(function(d){
+      var r=d.data();
+      rows+='<tr><td>'+esc(r.data)+'</td><td>'+esc(r.hora)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.cpf||'—')+'</td><td>'+esc(r.setor)+'</td><td>'+tipoBadge(r.tipo)+'</td><td style="color:var(--cinza)">'+esc(r.motivo||'—')+'</td></tr>';
+    });
+    wrap.innerHTML='<div class="table-wrap"><table><thead><tr><th>Data</th><th>Hora</th><th>Nome</th><th>CPF</th><th>Setor</th><th>Tipo</th><th>Motivo</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
+  }).catch(function(){ document.getElementById('hist-wrap').innerHTML='<div class="empty-table"><p>Sem movimentações ainda.</p></div>'; });
 }
 
-// ── Câmera uso ──
-function abrirUso() {
-  fotoUso = null;
-  const {data,hora} = agora();
-  document.getElementById('u-data').value = data;
-  document.getElementById('u-hora').value = hora;
-  document.getElementById('u-nome').value = '';
-  document.getElementById('u-cpf').value = '';
-  document.getElementById('u-setor').value = '';
-  document.getElementById('u-motivo').value = '';
-  document.getElementById('char-motivo').textContent = '0/150';
-  document.getElementById('foto-prev').style.display = 'none';
-  document.getElementById('btn-foto').style.display = 'none';
-  document.getElementById('btn-refazer').style.display = 'none';
-  document.getElementById('btn-cam').style.display = 'inline-flex';
+// ── Iniciar uso ──
+function abrirUso(){
+  fotoUso=null;
+  var now=agora();
+  document.getElementById('u-nome').value='';
+  document.getElementById('u-cpf').value='';
+  document.getElementById('u-setor').value='';
+  document.getElementById('u-motivo').value='';
+  document.getElementById('char-count').textContent='0/150';
+  document.getElementById('foto-prev').style.display='none';
+  document.getElementById('btn-cam-foto').style.display='none';
+  document.getElementById('btn-cam-refaz').style.display='none';
+  document.getElementById('btn-cam-abrir').style.display='inline-flex';
+  document.getElementById('btn-cam-abrir').disabled=false;
+  document.getElementById('btn-cam-abrir').textContent='📷 Abrir câmera';
   document.getElementById('cam-box').classList.remove('ativa');
-  document.getElementById('cam-video').style.display = 'none';
-  pararStream(streamUso);
+  document.getElementById('cam-video').style.display='none';
   abrirModal('modal-uso');
-  setTimeout(()=>document.getElementById('u-nome').focus(),200);
+  setTimeout(function(){ document.getElementById('u-nome').focus(); },300);
 }
 
-function abrirDev() {
-  fotoDev = null;
-  const {data,hora} = agora();
-  document.getElementById('d-data').value = data;
-  document.getElementById('d-hora').value = hora;
-  document.getElementById('foto-prev-dev').style.display = 'none';
-  document.getElementById('btn-foto-dev').style.display = 'none';
-  document.getElementById('btn-refazer-dev').style.display = 'none';
-  document.getElementById('btn-cam-dev').style.display = 'inline-flex';
+function confirmarUso(){
+  var nome  = document.getElementById('u-nome').value.trim();
+  var cpf   = document.getElementById('u-cpf').value.trim();
+  var setor = document.getElementById('u-setor').value.trim();
+  var motivo= document.getElementById('u-motivo').value.trim();
+  if(!nome||!setor){ showToast('Preencha nome e setor.','erro'); return; }
+  if(!cpf||cpf.replace(/\D/g,'').length<11){ showToast('CPF inválido.','erro'); return; }
+  if(!motivo){ showToast('Informe o motivo do uso.','erro'); return; }
+  if(!fotoUso){ showToast('Tire a foto do rosto para continuar.','erro'); return; }
+
+  var btn=document.getElementById('btn-confirmar-uso');
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  // Verificar bloqueio
+  db.collection('bloqueados').doc(nome.toLowerCase().trim()+'_'+setor.toLowerCase().trim()).get()
+  .then(function(snap){
+    if(snap.exists){ showToast('⛔ Você tem aparelho não devolvido!','erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; fecharModal('modal-uso'); return; }
+    var now=agora();
+    pararCam();
+    db.collection('usos_ativos').doc(pid).set({ nome:nome, cpf:cpf, setor:setor, motivo:motivo, data:now.data, hora:now.hora, ts:now.ts, fotoBase64:fotoUso, modelo:dadosP?dadosP.modelo:'' })
+    .then(function(){
+      return db.collection('historico').doc(pid).collection('movimentacoes').add({ nome:nome, cpf:cpf, setor:setor, tipo:'Retirada', motivo:motivo, data:now.data, hora:now.hora, ts:now.ts });
+    }).then(function(){
+      fecharModal('modal-uso');
+      showToast('✅ Uso iniciado com sucesso!');
+      setTimeout(function(){ location.reload(); },800);
+    }).catch(function(e){ showToast('Erro: '+e.message,'erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; });
+  });
+}
+
+// ── Devolver ──
+function abrirDev(){
+  fotoDev=null;
+  document.getElementById('foto-prev-dev').style.display='none';
+  document.getElementById('btn-dev-foto').style.display='none';
+  document.getElementById('btn-dev-refaz').style.display='none';
+  document.getElementById('btn-dev-abrir').style.display='inline-flex';
+  document.getElementById('btn-dev-abrir').disabled=false;
+  document.getElementById('btn-dev-abrir').textContent='📷 Abrir câmera';
   document.getElementById('cam-box-dev').classList.remove('ativa');
-  document.getElementById('cam-video-dev').style.display = 'none';
-  pararStream(streamDev);
+  document.getElementById('cam-video-dev').style.display='none';
   abrirModal('modal-dev');
 }
 
-async function confirmarUso() {
-  const nome   = document.getElementById('u-nome').value.trim();
-  const cpf    = document.getElementById('u-cpf').value.trim();
-  const setor  = document.getElementById('u-setor').value.trim();
-  const motivo = document.getElementById('u-motivo').value.trim();
-  if (!nome||!cpf||!setor) { showToast('Preencha nome, CPF e setor.','erro'); return; }
-  if (cpf.replace(/\D/g,'').length < 11) { showToast('CPF inválido. Digite os 11 dígitos.','erro'); return; }
-  if (!motivo)        { showToast('Informe o motivo do uso.','erro'); return; }
-  if (!fotoUso)       { showToast('Tire a foto do rosto para continuar.','erro'); return; }
+function confirmarDev(){
+  if(!fotoDev){ showToast('Tire a foto de confirmação.','erro'); return; }
+  var btn=document.getElementById('btn-confirmar-dev');
+  btn.disabled=true; btn.textContent='Salvando...';
 
-  const bloq = await estaBloqueado(nome, setor);
-  if (bloq) { showToast('⛔ Você tem um aparelho não devolvido. Devolva antes de retirar outro.','erro'); fecharModal('modal-uso'); return; }
-
-  const btn = document.getElementById('btn-confirmar-uso');
-  btn.disabled = true; btn.textContent = 'Salvando...';
-
-  const {data,hora,ts} = agora();
-  pararStream(streamUso); streamUso = null;
-
-  await setUsoAtivo(pid, { nome, cpf, setor, motivo, data, hora, ts, fotoBase64: fotoUso, modelo: dadosPatrimonio?.modelo||'' });
-  await addHistorico(pid, { nome, cpf, setor, tipo:'Retirada', motivo, data, hora });
-
-  fecharModal('modal-uso');
-  showToast('✅ Uso iniciado com sucesso!');
-  setTimeout(render, 500);
-}
-
-async function confirmarDev() {
-  if (!fotoDev) { showToast('Tire a foto de confirmação.','erro'); return; }
-
-  const btn = document.getElementById('btn-confirmar-dev');
-  btn.disabled = true; btn.textContent = 'Salvando...';
-
-  const {data,hora} = agora();
-  const uso = await getUsoAtivo(pid);
-  pararStream(streamDev); streamDev = null;
-
-  await removerUsoAtivo(pid);
-  await removerBloqueado(uso.nome, uso.setor);
-  await addHistorico(pid, { nome: uso.nome, setor: uso.setor, tipo:'Devolução', motivo:'', data, hora });
-
-  fecharModal('modal-dev');
-  showToast('↩️ Aparelho devolvido com sucesso!');
-  setTimeout(render, 500);
-}
-
-// ── Bind câmera genérico ──
-function bindCam(btnAbrir, btnFoto, btnRef, videoEl, canvasEl, boxEl, prevEl, streamVar, fotoVar, onFoto) {
-  document.getElementById(btnAbrir).addEventListener('click', async ()=>{
-    const v = document.getElementById(videoEl);
-    const box = document.getElementById(boxEl);
-    const btnFotoEl = document.getElementById(btnFoto);
-    const btnAbrirEl = document.getElementById(btnAbrir);
-
-    btnAbrirEl.disabled = true;
-    btnAbrirEl.textContent = '⏳ Abrindo...';
-
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-        audio: false
-      });
-      streamVar(stream);
-      v.srcObject = stream;
-      v.style.display = 'block';
-      box.classList.add('ativa');
-      btnAbrirEl.style.display = 'none';
-
-      // Aguarda vídeo ter frames reais
-      await new Promise(resolve => {
-        const check = setInterval(() => {
-          if (v.readyState >= 2 && v.videoWidth > 0) {
-            clearInterval(check);
-            resolve();
-          }
-        }, 200);
-        setTimeout(() => { clearInterval(check); resolve(); }, 4000);
-      });
-
-      btnFotoEl.style.display = 'inline-flex';
-      btnFotoEl.disabled = false;
-      btnFotoEl.textContent = '📷 Tirar foto';
-    } catch(e) {
-      btnAbrirEl.disabled = false;
-      btnAbrirEl.textContent = '📷 Abrir câmera';
-      showToast('Erro ao abrir câmera: ' + e.message, 'erro');
-    }
-  });
-  document.getElementById(btnFoto).addEventListener('click', ()=>{
-    const v   = document.getElementById(videoEl);
-    const can = document.getElementById(canvasEl);
-    const w   = v.videoWidth  || 640;
-    const h   = v.videoHeight || 480;
-    can.width  = w;
-    can.height = h;
-    can.getContext('2d').drawImage(v, 0, 0, w, h);
-    const foto = can.toDataURL('image/jpeg', 0.8);
-    onFoto(foto);
-
-    // Parar stream
-    const s = streamVar();
-    if (s) s.getTracks().forEach(t => t.stop());
-    streamVar(null);
-
-    v.style.display = 'none';
-    document.getElementById(boxEl).classList.remove('ativa');
-    document.getElementById(prevEl).src = foto;
-    document.getElementById(prevEl).style.display = 'block';
-    document.getElementById(btnFoto).style.display = 'none';
-    document.getElementById(btnRef).style.display  = 'inline-flex';
-  });
-  document.getElementById(btnRef).addEventListener('click', ()=>{
-    onFoto(null);
-    document.getElementById(prevEl).style.display = 'none';
-    document.getElementById(btnRef).style.display = 'none';
-    document.getElementById(btnAbrir).style.display = 'inline-flex';
-    document.getElementById(btnAbrir).disabled = false;
-    document.getElementById(btnAbrir).textContent = '📷 Abrir câmera';
+  db.collection('usos_ativos').doc(pid).get().then(function(snap){
+    if(!snap.exists){ fecharModal('modal-dev'); location.reload(); return; }
+    var uso=snap.data();
+    var now=agora();
+    pararCam();
+    var chave=(uso.nome||'').toLowerCase().trim()+'_'+(uso.setor||'').toLowerCase().trim();
+    db.collection('usos_ativos').doc(pid).delete()
+    .then(function(){ return db.collection('bloqueados').doc(chave).delete(); })
+    .then(function(){ return db.collection('historico').doc(pid).collection('movimentacoes').add({ nome:uso.nome, cpf:uso.cpf||'', setor:uso.setor, tipo:'Devolução', motivo:'', data:now.data, hora:now.hora, ts:now.ts }); })
+    .then(function(){
+      fecharModal('modal-dev');
+      showToast('↩️ Aparelho devolvido com sucesso!');
+      setTimeout(function(){ location.reload(); },800);
+    }).catch(function(e){ showToast('Erro: '+e.message,'erro'); btn.disabled=false; btn.textContent='↩️ Confirmar devolução'; });
   });
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  if (!pid) { document.getElementById('main').innerHTML = '<div class="not-found"><h2>Ops!</h2><p>Nenhum ID informado.</p></div>'; return; }
-  render();
+// ── Fechar modal ao clicar fora ──
+document.addEventListener('click',function(e){ if(e.target.classList.contains('modal-overlay')){ pararCam(); fecharModal(e.target.id); } });
+document.addEventListener('keydown',function(e){ if(e.key==='Escape'){ pararCam(); fecharModal('modal-uso'); fecharModal('modal-dev'); } });
 
-  // Receber fotos capturadas pelo script normal
-  window.addEventListener('sv_foto_uso', e => { fotoUso = e.detail; });
-  window.addEventListener('sv_foto_dev', e => { fotoDev = e.detail; });
+// ── Bind botões câmera ──
+document.addEventListener('DOMContentLoaded',function(){
+  document.getElementById('btn-cam-abrir').addEventListener('click',function(){ abrirCamera('uso'); });
+  document.getElementById('btn-cam-foto').addEventListener('click',function(){ tirarFoto('uso'); });
+  document.getElementById('btn-cam-refaz').addEventListener('click',function(){ refazerFoto('uso'); });
+  document.getElementById('btn-dev-abrir').addEventListener('click',function(){ abrirCamera('dev'); });
+  document.getElementById('btn-dev-foto').addEventListener('click',function(){ tirarFoto('dev'); });
+  document.getElementById('btn-dev-refaz').addEventListener('click',function(){ refazerFoto('dev'); });
+  document.getElementById('btn-confirmar-uso').addEventListener('click',confirmarUso);
+  document.getElementById('btn-confirmar-dev').addEventListener('click',confirmarDev);
 
-  // Máscara CPF
-  document.getElementById('u-cpf').addEventListener('input', function(){
-    let v = this.value.replace(/\D/g,'').slice(0,11);
-    if (v.length > 9) v = v.replace(/(\d{3})(\d{3})(\d{3})(\d{1,2})/,'$1.$2.$3-$4');
-    else if (v.length > 6) v = v.replace(/(\d{3})(\d{3})(\d{1,3})/,'$1.$2.$3');
-    else if (v.length > 3) v = v.replace(/(\d{3})(\d{1,3})/,'$1.$2');
-    this.value = v;
+  if(!pid){ document.getElementById('main').innerHTML='<div class="not-found"><h2>Ops!</h2><p>Nenhum ID informado.</p></div>'; return; }
+
+  // Carregar dados e escutar tempo real
+  db.collection('usos_ativos').doc(pid).onSnapshot(function(snap){
+    renderPagina(snap.exists?snap.data():null);
   });
-
-  // Contador motivo
-  document.getElementById('u-motivo').addEventListener('input', function(){
-    const c = document.getElementById('char-motivo');
-    c.textContent = this.value.length+'/150';
-    c.className = 'char-count'+(this.value.length>=140?' limite':'');
-  });
-
-  // Confirmar
-  document.getElementById('btn-confirmar-uso').addEventListener('click', confirmarUso);
-  document.getElementById('btn-confirmar-dev').addEventListener('click', confirmarDev);
-
-  // Cancelar / fechar
-  ['mc-uso','btn-cancelar-uso'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{ pararStream(_sUso); fecharModal('modal-uso'); }));
-  ['mc-dev','btn-cancelar-dev'].forEach(id=>document.getElementById(id)?.addEventListener('click',()=>{ pararStream(_sDev); fecharModal('modal-dev'); }));
-  ['modal-uso','modal-dev'].forEach(id=>document.getElementById(id).addEventListener('click',e=>{ if(e.target===e.currentTarget){ pararStream(_sUso);pararStream(_sDev);fecharModal(id); } }));
-  document.addEventListener('keydown',e=>{ if(e.key==='Escape'){pararStream(_sUso);pararStream(_sDev);fecharModal('modal-uso');fecharModal('modal-dev');} });
-});
-</script>
-<script>
-// ── Câmera — script normal (fora do ES module) para compatibilidade Safari/iOS ──
-var _streamUso = null;
-var _streamDev = null;
-var _fotoUso   = null;
-var _fotoDev   = null;
-
-function sv_abrirCam(videoId, boxId, btnAbrirId, btnFotoId) {
-  var btn = document.getElementById(btnAbrirId);
-  if (btn) btn.disabled = true;
-
-  navigator.mediaDevices.getUserMedia({
-    video: { facingMode: 'user', width: { ideal: 640 }, height: { ideal: 480 } },
-    audio: false
-  }).then(function(stream) {
-    if (videoId === 'cam-video') _streamUso = stream;
-    else _streamDev = stream;
-
-    var v = document.getElementById(videoId);
-    v.srcObject = stream;
-    v.style.display = 'block';
-    document.getElementById(boxId).classList.add('ativa');
-    document.getElementById(btnAbrirId).style.display = 'none';
-
-    // Aguardar vídeo ter frames
-    var check = setInterval(function() {
-      if (v.readyState >= 2 && v.videoWidth > 0) {
-        clearInterval(check);
-        var btnF = document.getElementById(btnFotoId);
-        btnF.style.display = 'inline-flex';
-        btnF.disabled = false;
-      }
-    }, 150);
-    setTimeout(function() {
-      clearInterval(check);
-      var btnF = document.getElementById(btnFotoId);
-      if (btnF) { btnF.style.display = 'inline-flex'; btnF.disabled = false; }
-    }, 3000);
-
-  }).catch(function(e) {
-    if (btn) { btn.disabled = false; }
-    alert('Não foi possível abrir a câmera: ' + e.message);
-  });
-}
-
-function sv_tirarFoto(videoId, canvasId, prevId, btnFotoId, btnRefId, tipo) {
-  var v   = document.getElementById(videoId);
-  var can = document.getElementById(canvasId);
-  var w   = v.videoWidth  || 640;
-  var h   = v.videoHeight || 480;
-  can.width  = w;
-  can.height = h;
-  can.getContext('2d').drawImage(v, 0, 0, w, h);
-  var foto = can.toDataURL('image/jpeg', 0.8);
-
-  // Parar stream
-  var stream = tipo === 'uso' ? _streamUso : _streamDev;
-  if (stream) stream.getTracks().forEach(function(t){ t.stop(); });
-  if (tipo === 'uso') { _streamUso = null; _fotoUso = foto; }
-  else               { _streamDev = null; _fotoDev = foto; }
-
-  v.style.display = 'none';
-  document.getElementById(videoId.replace('video','box').replace('cam-','cam-box').split('-video')[0] + (tipo==='uso'?'cam-box':'cam-box-dev')).classList.remove('ativa');
-  document.getElementById(prevId).src = foto;
-  document.getElementById(prevId).style.display = 'block';
-  document.getElementById(btnFotoId).style.display = 'none';
-  document.getElementById(btnRefId).style.display  = 'inline-flex';
-
-  // Notificar module ES
-  window.dispatchEvent(new CustomEvent('sv_foto_' + tipo, { detail: foto }));
-}
-
-function sv_refazer(tipo, btnAbrirId, btnRefId, prevId) {
-  if (tipo === 'uso') _fotoUso = null;
-  else _fotoDev = null;
-  document.getElementById(prevId).style.display  = 'none';
-  document.getElementById(btnRefId).style.display = 'none';
-  var btnA = document.getElementById(btnAbrirId);
-  btnA.style.display = 'inline-flex';
-  btnA.disabled = false;
-  window.dispatchEvent(new CustomEvent('sv_foto_' + tipo, { detail: null }));
-}
-
-document.addEventListener('DOMContentLoaded', function() {
-  // Câmera USO
-  var btnCam    = document.getElementById('btn-cam');
-  var btnFoto   = document.getElementById('btn-foto');
-  var btnRefaz  = document.getElementById('btn-refazer');
-  if (btnCam)   btnCam.addEventListener('click',   function(){ sv_abrirCam('cam-video','cam-box','btn-cam','btn-foto'); });
-  if (btnFoto)  btnFoto.addEventListener('click',  function(){ sv_tirarFoto('cam-video','cam-canvas','foto-prev','btn-foto','btn-refazer','uso'); });
-  if (btnRefaz) btnRefaz.addEventListener('click', function(){ sv_refazer('uso','btn-cam','btn-refazer','foto-prev'); });
-
-  // Câmera DEV
-  var btnCamD   = document.getElementById('btn-cam-dev');
-  var btnFotoD  = document.getElementById('btn-foto-dev');
-  var btnRefazD = document.getElementById('btn-refazer-dev');
-  if (btnCamD)   btnCamD.addEventListener('click',   function(){ sv_abrirCam('cam-video-dev','cam-box-dev','btn-cam-dev','btn-foto-dev'); });
-  if (btnFotoD)  btnFotoD.addEventListener('click',  function(){ sv_tirarFoto('cam-video-dev','cam-canvas-dev','foto-prev-dev','btn-foto-dev','btn-refazer-dev','dev'); });
-  if (btnRefazD) btnRefazD.addEventListener('click', function(){ sv_refazer('dev','btn-cam-dev','btn-refazer-dev','foto-prev-dev'); });
 });
 </script>
 </body>

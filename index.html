@@ -1,13 +1,12 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>SuperVille — Controle de Patrimônio</title>
-  <link rel="stylesheet" href="style.css"/>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SuperVille — Controle de Patrimônio</title>
+<link rel="stylesheet" href="style.css"/>
 </head>
 <body>
-
 <header class="header">
   <div class="header-inner">
     <div class="logo">
@@ -18,129 +17,134 @@
       </div>
     </div>
     <div class="header-actions">
-      <button class="btn-back" onclick="location.href='admin.html'">
-        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-        Admin
-      </button>
+      <button class="btn-back" onclick="location.href='admin.html'">🔐 Admin</button>
     </div>
   </div>
 </header>
-
 <main class="container">
   <div class="page-hero">
     <h1>PATRIMÔNIO<br><span>SUPERVILLE</span></h1>
     <p>Escaneie o QR Code do aparelho para iniciar o uso</p>
   </div>
-
   <div class="stats-bar">
     <div class="stat-card"><div class="stat-icon si-verde">📱</div><div><div class="stat-num" id="s-total">—</div><div class="stat-label">Total</div></div></div>
     <div class="stat-card"><div class="stat-icon si-verde">🟢</div><div><div class="stat-num" id="s-uso">—</div><div class="stat-label">Em Uso</div></div></div>
     <div class="stat-card"><div class="stat-icon si-cinza">✅</div><div><div class="stat-num" id="s-disp">—</div><div class="stat-label">Disponíveis</div></div></div>
     <div class="stat-card"><div class="stat-icon si-alerta">⚠️</div><div><div class="stat-num" id="s-atrasado">—</div><div class="stat-label">Atrasados</div></div></div>
   </div>
-
   <div class="search-bar">
     <div class="search-wrap">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-      <input type="text" id="busca" class="search-input" placeholder="Buscar por patrimônio, modelo, setor..." autocomplete="off"/>
+      <input type="text" id="busca" class="search-input" placeholder="Buscar por patrimônio, modelo, setor..." autocomplete="off" oninput="filtrar()"/>
     </div>
-    <select id="fil-status" class="filter-select">
+    <select id="fil-status" class="filter-select" onchange="filtrar()">
       <option value="">Todos os status</option>
       <option value="Disponível">Disponível</option>
       <option value="Em uso">Em uso</option>
       <option value="Atrasado">Atrasado</option>
     </select>
   </div>
-
   <div class="section-card" style="margin-bottom:22px;">
-    <div class="section-header">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-      Aparelhos em uso agora
-    </div>
-    <div id="lista-em-uso" style="padding:4px 0;"></div>
+    <div class="section-header">⏱️ Aparelhos em uso agora</div>
+    <div id="lista-em-uso"><div class="alertas-vazios">Carregando...</div></div>
   </div>
-
   <div class="cards-grid" id="cards-grid"><div class="loading"><div class="spinner"></div><span>Carregando...</span></div></div>
 </main>
 
-<script type="module">
-import { db } from './firebase-config.js';
-import { listenUsos, calcStatusComUso, badgeHTML, esc, verificarAtrasos } from './script.js';
-import { collection, onSnapshot } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+<script src="dados.js"></script>
+<script>
+var HORAS_DEV = 14;
 
-let todosUsos = {};
+firebase.initializeApp({
+  apiKey: "AIzaSyAGYYSZvRNU3S8V42IMrRY65JciMiNNkgg",
+  authDomain: "superville-patrimonio.firebaseapp.com",
+  projectId: "superville-patrimonio",
+  storageBucket: "superville-patrimonio.firebasestorage.app",
+  messagingSenderId: "843390838064",
+  appId: "1:843390838064:web:37c75a9df17dc799b3d4f5"
+});
+var db = firebase.firestore();
+
+var todosUsos = {};
+
+function calcStatus(uso) {
+  if (!uso) return 'Disponível';
+  var h = (Date.now() - uso.ts) / 3600000;
+  return h > HORAS_DEV ? 'Atrasado' : 'Em uso';
+}
+
+function badgeHTML(status) {
+  var cls = { 'Disponível':'badge-disponivel','Em uso':'badge-uso','Atrasado':'badge-atrasado','Manutenção':'badge-manutencao' };
+  return '<span class="badge '+(cls[status]||'badge-disponivel')+'">'+status+'</span>';
+}
+
+function esc(s) {
+  if (!s) return '';
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
 
 function render() {
-  const q    = document.getElementById('busca').value.toLowerCase();
-  const fSt  = document.getElementById('fil-status').value;
-
-  const lista = patrimonios.map(p => ({ ...p, status: calcStatusComUso(todosUsos[p.id]) }));
+  var q   = (document.getElementById('busca').value||'').toLowerCase();
+  var fSt = document.getElementById('fil-status').value;
+  var lista = patrimonios.map(function(p) {
+    return Object.assign({}, p, { status: calcStatus(todosUsos[p.id]) });
+  });
 
   document.getElementById('s-total').textContent    = lista.length;
-  document.getElementById('s-uso').textContent      = lista.filter(p=>p.status==='Em uso').length;
-  document.getElementById('s-disp').textContent     = lista.filter(p=>p.status==='Disponível').length;
-  document.getElementById('s-atrasado').textContent = lista.filter(p=>p.status==='Atrasado').length;
+  document.getElementById('s-uso').textContent      = lista.filter(function(p){ return p.status==='Em uso'; }).length;
+  document.getElementById('s-disp').textContent     = lista.filter(function(p){ return p.status==='Disponível'; }).length;
+  document.getElementById('s-atrasado').textContent = lista.filter(function(p){ return p.status==='Atrasado'; }).length;
 
-  // Em uso agora
-  const emUso = lista.filter(p=>p.status==='Em uso'||p.status==='Atrasado');
-  const luEl  = document.getElementById('lista-em-uso');
+  var emUso = lista.filter(function(p){ return p.status==='Em uso'||p.status==='Atrasado'; });
+  var luEl  = document.getElementById('lista-em-uso');
   if (!emUso.length) {
     luEl.innerHTML = '<div class="alertas-vazios">Nenhum aparelho em uso no momento.</div>';
   } else {
-    luEl.innerHTML = '<div style="padding:8px 16px;">'+emUso.map(p=>{
-      const uso = todosUsos[p.id];
-      const atrasado = p.status==='Atrasado';
-      return `<div class="eu-item ${atrasado?'atrasado':''}">
-        <div class="eu-item-id">#${esc(p.id)}</div>
-        <div class="eu-item-info">
-          <div class="modelo">${esc(p.modelo)}</div>
-          <div class="detalhes">${uso?`${esc(uso.nome)} — ${esc(uso.setor)} — desde ${esc(uso.hora)}`:''}  ${atrasado?'⚠️ ATRASADO':''}</div>
-        </div>
-        ${badgeHTML(p.status)}
-      </div>`;
+    luEl.innerHTML = '<div style="padding:8px 16px;">'+emUso.map(function(p){
+      var uso = todosUsos[p.id];
+      return '<div class="eu-item'+(p.status==='Atrasado'?' atrasado':'')+'">'+
+        '<div class="eu-item-id">#'+esc(p.id)+'</div>'+
+        '<div class="eu-item-info"><div class="modelo">'+esc(p.modelo)+'</div>'+
+        '<div class="detalhes">'+(uso ? esc(uso.nome)+' — '+esc(uso.setor)+' — desde '+esc(uso.hora) : '')+(p.status==='Atrasado'?' ⚠️ ATRASADO':'')+'</div></div>'+
+        badgeHTML(p.status)+'</div>';
     }).join('')+'</div>';
   }
 
-  // Cards
-  const filtrados = lista.filter(p=>{
-    const matchQ  = !q || p.id.includes(q)||p.modelo.toLowerCase().includes(q)||p.setor.toLowerCase().includes(q)||p.equipamento.toLowerCase().includes(q);
-    const matchSt = !fSt || p.status===fSt;
+  var filtrados = lista.filter(function(p){
+    var matchQ  = !q || p.id.includes(q)||p.modelo.toLowerCase().includes(q)||p.setor.toLowerCase().includes(q)||p.equipamento.toLowerCase().includes(q);
+    var matchSt = !fSt || p.status===fSt;
     return matchQ && matchSt;
   });
 
-  const grid = document.getElementById('cards-grid');
+  var grid = document.getElementById('cards-grid');
   if (!filtrados.length) {
-    grid.innerHTML = '<div class="no-results"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg><p>Nenhum resultado.</p></div>';
+    grid.innerHTML = '<div class="no-results"><p>Nenhum resultado.</p></div>';
     return;
   }
-
-  grid.innerHTML = filtrados.map(p=>{
-    const uso = todosUsos[p.id];
-    const info = uso
-      ? `<div><label>Usuário</label><span>${esc(uso.nome)}</span></div><div><label>Desde</label><span>${esc(uso.hora)}</span></div>`
-      : `<div><label>Setor</label><span>${esc(p.setor)}</span></div><div><label>Responsável</label><span>${esc(p.responsavel)}</span></div>`;
-    return `<div class="patrimonio-card" onclick="location.href='patrimonio.html?id=${p.id}'" tabindex="0" role="button">
-      <div class="card-num-row"><div class="card-num"><small>Patrimônio</small>#${esc(p.id)}</div>${badgeHTML(p.status)}</div>
-      <div class="card-equip">${esc(p.equipamento)}</div>
-      <div class="card-modelo">${esc(p.modelo)}</div>
-      <div class="card-sep"></div>
-      <div class="card-info">${info}</div>
-    </div>`;
+  grid.innerHTML = filtrados.map(function(p){
+    var uso = todosUsos[p.id];
+    var info = uso
+      ? '<div><label>Usuário</label><span>'+esc(uso.nome)+'</span></div><div><label>Desde</label><span>'+esc(uso.hora)+'</span></div>'
+      : '<div><label>Setor</label><span>'+esc(p.setor)+'</span></div><div><label>Responsável</label><span>'+esc(p.responsavel)+'</span></div>';
+    return '<div class="patrimonio-card" onclick="location.href=\'patrimonio.html?id='+p.id+'\'" tabindex="0">'+
+      '<div class="card-num-row"><div class="card-num"><small>Patrimônio</small>#'+esc(p.id)+'</div>'+badgeHTML(p.status)+'</div>'+
+      '<div class="card-equip">'+esc(p.equipamento)+'</div>'+
+      '<div class="card-modelo">'+esc(p.modelo)+'</div>'+
+      '<div class="card-sep"></div>'+
+      '<div class="card-info">'+info+'</div></div>';
   }).join('');
 }
 
-document.addEventListener('DOMContentLoaded', ()=>{
-  document.getElementById('busca').addEventListener('input', render);
-  document.getElementById('fil-status').addEventListener('change', render);
+function filtrar() { render(); }
 
-  // Listener em tempo real Firebase
-  listenUsos(usos => {
-    todosUsos = usos;
-    verificarAtrasos(usos);
-    render();
-  });
+// Listener tempo real Firebase
+db.collection('usos_ativos').onSnapshot(function(snap) {
+  todosUsos = {};
+  snap.forEach(function(d){ todosUsos[d.id] = d.data(); });
+  render();
 });
 </script>
-<script src="dados.js"></script>
 </body>
 </html>
