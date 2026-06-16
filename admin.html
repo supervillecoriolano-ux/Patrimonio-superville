@@ -65,7 +65,7 @@
     <div class="section-card"><div class="section-header">📋 Histórico completo</div><div id="hist-completo"><div class="loading"><div class="spinner"></div></div></div></div>
   </div>
   <div class="tab-panel" id="tab-alertas">
-    <div class="section-card" style="margin-bottom:18px;"><div class="section-header" style="color:#e74c3c;">⚠️ Não devolvidos (+14h)</div><div id="alertas-wrap"><div class="alertas-vazios">Carregando...</div></div></div>
+    <div class="section-card" style="margin-bottom:18px;"><div class="section-header" style="color:#e74c3c;">⚠️ Não devolvidos (+9h)</div><div id="alertas-wrap"><div class="alertas-vazios">Carregando...</div></div></div>
     <div class="section-card"><div class="section-header">⛔ Bloqueados</div><div id="bloqueados-wrap"><div class="alertas-vazios">Carregando...</div></div></div>
   </div>
 </main>
@@ -119,7 +119,7 @@ function fazerLogin(){
 }
 
 var SENHA = '1234';
-var HORAS = 14;
+var HORAS = 9;
 var usos  = {};
 var db;
 
@@ -135,7 +135,13 @@ db = firebase.firestore();
 
 function esc(s){if(!s)return'';return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 function agora(){var d=new Date();return{data:d.toLocaleDateString('pt-BR'),hora:d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}),ts:d.getTime()};}
-function status(uso){if(!uso)return'Disponível';return(Date.now()-uso.ts)/3600000>HORAS?'Atrasado':'Em uso';}
+var _ov={};
+db.collection('patrimonios_override').get().then(function(s){s.forEach(function(d){_ov[d.id]=d.data();});});
+function status(uso,pid){
+  if(pid && _ov[pid] && _ov[pid].statusManual==='Manutenção') return 'Manutenção';
+  if(!uso)return'Disponível';
+  return(Date.now()-uso.ts)/3600000>HORAS?'Atrasado':'Em uso';
+}
 function badge(s){var c={'Disponível':'badge-disponivel','Em uso':'badge-uso','Atrasado':'badge-atrasado','Manutenção':'badge-manutencao'};return'<span class="badge '+(c[s]||'badge-disponivel')+'">'+s+'</span>';}
 function tipoBadge(t){var c={'Retirada':'tipo-retirada','Devolução':'tipo-devolucao'};return'<span class="badge '+(c[t]||'')+'">'+esc(t)+'</span>';}
 function toast(msg,tipo){var o=document.getElementById('_t');if(o)o.remove();var t=document.createElement('div');t.id='_t';t.className='toast'+(tipo==='erro'?' erro':'');t.innerHTML=(tipo==='erro'?'❌ ':'✅ ')+msg;document.body.appendChild(t);setTimeout(function(){t.classList.add('show');},10);setTimeout(function(){t.classList.remove('show');setTimeout(function(){t.remove();},400);},3500);}
@@ -172,18 +178,18 @@ function iniciar(){
 function renderStats(){
   var l=patrimonios.map(function(p){return status(usos[p.id]);});
   document.getElementById('a-total').textContent=l.length;
-  document.getElementById('a-uso').textContent=l.filter(function(s){return s==='Em uso';}).length;
-  document.getElementById('a-disp').textContent=l.filter(function(s){return s==='Disponível';}).length;
-  document.getElementById('a-atrasado').textContent=l.filter(function(s){return s==='Atrasado';}).length;
+  document.getElementById('a-uso').textContent=patrimonios.filter(function(p){return status(usos[p.id],p.id)==='Em uso';}).length;
+  document.getElementById('a-disp').textContent=patrimonios.filter(function(p){return status(usos[p.id],p.id)==='Disponível';}).length;
+  document.getElementById('a-atrasado').textContent=patrimonios.filter(function(p){return status(usos[p.id],p.id)==='Atrasado';}).length;
 }
 
 function renderDashboard(){
-  var em=patrimonios.filter(function(p){var s=status(usos[p.id]);return s==='Em uso'||s==='Atrasado';});
+  var em=patrimonios.filter(function(p){var s=status(usos[p.id],p.id);return s==='Em uso'||s==='Atrasado';});
   var el=document.getElementById('usando-wrap');
   if(!em.length){el.innerHTML='<div class="alertas-vazios">Nenhum aparelho em uso agora.</div>';return;}
   var rows='';
   em.forEach(function(p){
-    var u=usos[p.id];var s=status(u);var h=u?((Date.now()-u.ts)/3600000).toFixed(1):'-';
+    var u=usos[p.id];var s=status(u,p.id);var h=u?((Date.now()-u.ts)/3600000).toFixed(1):'-';
     rows+='<tr>'+
       '<td><a href="patrimonio.html?id='+p.id+'" style="color:var(--verde);font-weight:700;">#'+esc(p.id)+'</a></td>'+
       '<td>'+esc(p.modelo)+'</td><td>'+esc(u?u.nome:'—')+'</td><td>'+esc(u?u.cpf||'—':'—')+'</td>'+
@@ -201,7 +207,7 @@ function renderPatrimonios(){
   var el=document.getElementById('lista-patr');
   var rows='';
   patrimonios.forEach(function(p){
-    var s=status(usos[p.id]);
+    var s=status(usos[p.id],p.id);
     rows+='<tr><td style="font-weight:700;color:var(--verde);">#'+esc(p.id)+'</td>'+
       '<td>'+esc(p.equipamento)+'</td><td>'+esc(p.modelo)+'</td>'+
       '<td style="font-size:11px;font-family:monospace;">'+esc(p.imei)+'</td>'+
@@ -239,7 +245,7 @@ function carregarHistorico(){
 }
 
 function carregarAlertas(){
-  var atrasados=patrimonios.filter(function(p){return status(usos[p.id])==='Atrasado';});
+  var atrasados=patrimonios.filter(function(p){return status(usos[p.id],p.id)==='Atrasado';});
   var el=document.getElementById('alertas-wrap');
   if(!atrasados.length){el.innerHTML='<div class="alertas-vazios">✅ Nenhum aparelho em atraso.</div>';}
   else{

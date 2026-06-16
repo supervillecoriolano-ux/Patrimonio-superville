@@ -69,7 +69,11 @@ var db = firebase.firestore();
 
 var todosUsos = {};
 
-function calcStatus(uso) {
+function calcStatus(uso, patrimonioId) {
+  // Verificar se está em manutenção pelo override
+  if(todosOverrides && todosOverrides[patrimonioId] && todosOverrides[patrimonioId].statusManual === 'Manutenção'){
+    return 'Manutenção';
+  }
   if (!uso) return 'Disponível';
   var h = (Date.now() - uso.ts) / 3600000;
   return h > HORAS_DEV ? 'Atrasado' : 'Em uso';
@@ -89,7 +93,7 @@ function render() {
   var q   = (document.getElementById('busca').value||'').toLowerCase();
   var fSt = document.getElementById('fil-status').value;
   var lista = patrimonios.map(function(p) {
-    return Object.assign({}, p, { status: calcStatus(todosUsos[p.id]) });
+    return Object.assign({}, p, { status: calcStatus(todosUsos[p.id], p.id) });
   });
 
   document.getElementById('s-total').textContent    = lista.length;
@@ -139,11 +143,22 @@ function render() {
 
 function filtrar() { render(); }
 
+// Buscar overrides de manutenção
+var todosOverrides = {};
+db.collection('patrimonios_override').get().then(function(snap){
+  snap.forEach(function(d){ todosOverrides[d.id] = d.data(); });
+});
+
 // Listener tempo real Firebase
 db.collection('usos_ativos').onSnapshot(function(snap) {
   todosUsos = {};
   snap.forEach(function(d){ todosUsos[d.id] = d.data(); });
-  render();
+  // Recarregar overrides junto
+  db.collection('patrimonios_override').get().then(function(snap2){
+    todosOverrides = {};
+    snap2.forEach(function(d){ todosOverrides[d.id] = d.data(); });
+    render();
+  });
 });
 </script>
 </body>

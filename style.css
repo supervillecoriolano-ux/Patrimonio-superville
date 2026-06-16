@@ -113,13 +113,13 @@ img{display:block}
 /* ── BADGES ── */
 .badge{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:20px;font-size:10px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;white-space:nowrap;flex-shrink:0}
 .badge::before{content:'';width:6px;height:6px;border-radius:50%;flex-shrink:0}
-.badge-disponivel{background:rgba(245,245,245,.07);color:var(--branco-2);border:1px solid rgba(255,255,255,.12)}
-.badge-disponivel::before{background:var(--branco-2)}
-.badge-uso{background:rgba(74,158,74,.15);color:#6dbe6d;border:1px solid rgba(74,158,74,.3)}
-.badge-uso::before{background:#6dbe6d;box-shadow:0 0 5px #6dbe6d;animation:pulso .8s infinite alternate}
-.badge-manutencao{background:rgba(212,160,23,.15);color:#f1c40f;border:1px solid rgba(212,160,23,.3)}
-.badge-manutencao::before{background:#f1c40f}
-.badge-atrasado{background:rgba(192,57,43,.15);color:#e74c3c;border:1px solid rgba(192,57,43,.3)}
+.badge-disponivel{background:rgba(74,158,74,.15);color:#6dbe6d;border:1px solid rgba(74,158,74,.3)}
+.badge-disponivel::before{background:#6dbe6d}
+.badge-uso{background:rgba(192,57,43,.15);color:#e74c3c;border:1px solid rgba(192,57,43,.3)}
+.badge-uso::before{background:#e74c3c;box-shadow:0 0 5px #e74c3c;animation:pulso .8s infinite alternate}
+.badge-manutencao{background:rgba(230,126,34,.15);color:#e67e22;border:1px solid rgba(230,126,34,.3)}
+.badge-manutencao::before{background:#e67e22}
+.badge-atrasado{background:rgba(192,57,43,.25);color:#e74c3c;border:2px solid rgba(192,57,43,.6)}
 .badge-atrasado::before{background:#e74c3c;animation:pulso .5s infinite alternate}
 @keyframes pulso{from{opacity:.5}to{opacity:1}}
 

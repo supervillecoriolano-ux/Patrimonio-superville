@@ -91,7 +91,7 @@
 // ============================================================
 // SUPERVILLE — patrimonio.html (sem ES Modules)
 // ============================================================
-var HORAS_DEV  = 14;
+var HORAS_DEV  = 9;
 var SENHA_ADMIN = '1234';
 var pid         = new URLSearchParams(location.search).get('id');
 var BASE        = location.origin + location.pathname.replace('patrimonio.html','');
@@ -117,7 +117,11 @@ function esc(s){ if(!s)return''; return String(s).replace(/&/g,'&amp;').replace(
 function agora(){ var d=new Date(); return { data:d.toLocaleDateString('pt-BR'), hora:d.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'}), ts:d.getTime() }; }
 function badgeHTML(status){ var cls={'Disponível':'badge-disponivel','Em uso':'badge-uso','Atrasado':'badge-atrasado','Manutenção':'badge-manutencao'}; return '<span class="badge '+(cls[status]||'badge-disponivel')+'">'+status+'</span>'; }
 function tipoBadge(tipo){ var cls={'Retirada':'tipo-retirada','Devolução':'tipo-devolucao'}; return '<span class="badge '+(cls[tipo]||'')+'">'+esc(tipo)+'</span>'; }
-function calcStatus(uso){ if(!uso)return'Disponível'; return (Date.now()-uso.ts)/3600000>HORAS_DEV?'Atrasado':'Em uso'; }
+function calcStatus(uso, patrimonioId){
+  if(window._overrides && window._overrides[patrimonioId] && window._overrides[patrimonioId].statusManual==='Manutenção') return 'Manutenção';
+  if(!uso)return'Disponível';
+  return (Date.now()-uso.ts)/3600000>HORAS_DEV?'Atrasado':'Em uso';
+}
 
 
 function abrirModal(id){ document.getElementById(id).classList.add('active'); document.body.style.overflow='hidden'; }
@@ -215,7 +219,7 @@ function renderPagina(uso){
   if(!base){ document.getElementById('main').innerHTML='<div class="not-found"><h2>404</h2><p>Patrimônio não encontrado.</p><button class="btn btn-outline" onclick="location.href=\'index.html\'">Voltar</button></div>'; return; }
 
   dadosP=base;
-  var status=calcStatus(uso);
+  var status=calcStatus(uso, pid);
   var horas=uso?((Date.now()-uso.ts)/3600000).toFixed(1):null;
   var atrasado=status==='Atrasado';
 
@@ -223,7 +227,7 @@ function renderPagina(uso){
   if(uso){
     usoHTML='<div class="uso-ativo-box">'+
       '<h4>🟢 Em uso agora</h4>'+
-      (atrasado?'<div class="atrasado-aviso">⚠️ Prazo de '+HORAS_DEV+'h excedido!</div>':'')+
+      (atrasado?'<div class="atrasado-aviso">⚠️ Prazo de 9h excedido!</div>':'')+
       '<div class="uso-pessoa">'+
       (uso.fotoBase64?'<img src="'+uso.fotoBase64+'" class="uso-foto-thumb" alt="Foto"/>':'')+
       '<div class="uso-pessoa-info"><div class="nome">'+esc(uso.nome)+'</div>'+
@@ -330,10 +334,18 @@ function confirmarUso(){
   var btn=document.getElementById('btn-confirmar-uso');
   btn.disabled=true; btn.textContent='Salvando...';
 
-  // Verificar bloqueio
-  db.collection('bloqueados').doc(nome.toLowerCase().trim()+'_'+setor.toLowerCase().trim()).get()
+  // Verificar bloqueio por CPF
+  var cpfLimpo = cpf.replace(/[^0-9]/g,'');
+  db.collection('usos_ativos').where('cpf','==',cpf).get()
+  .then(function(snapUso){
+    // Verificar se já tem aparelho em uso com esse CPF
+    var jaEmUso = false;
+    snapUso.forEach(function(d){ if(d.id !== pid) jaEmUso = true; });
+    if(jaEmUso){ showToast('⛔ Você já está com um aparelho! Devolva antes de retirar outro.','erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; fecharModal('modal-uso'); return; }
+
+    db.collection('bloqueados').where('cpf','==',cpf).get()
   .then(function(snap){
-    if(snap.exists){ showToast('⛔ Você tem aparelho não devolvido!','erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; fecharModal('modal-uso'); return; }
+    if(!snap.empty){ showToast('⛔ Você tem aparelho não devolvido! Devolva antes.','erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; fecharModal('modal-uso'); return; }
     var now=agora();
     pararCam();
     db.collection('usos_ativos').doc(pid).set({ nome:nome, cpf:cpf, setor:setor, motivo:motivo, data:now.data, hora:now.hora, ts:now.ts, fotoBase64:fotoUso, modelo:dadosP?dadosP.modelo:'' })
@@ -344,6 +356,7 @@ function confirmarUso(){
       showToast('✅ Uso iniciado com sucesso!');
       setTimeout(function(){ location.reload(); },800);
     }).catch(function(e){ showToast('Erro: '+e.message,'erro'); btn.disabled=false; btn.textContent='✅ Confirmar uso'; });
+  });
   });
 }
 
@@ -400,7 +413,11 @@ document.addEventListener('DOMContentLoaded',function(){
 
   if(!pid){ document.getElementById('main').innerHTML='<div class="not-found"><h2>Ops!</h2><p>Nenhum ID informado.</p></div>'; return; }
 
-  // Carregar dados e escutar tempo real
+  // Carregar overrides e dados
+  window._overrides = {};
+  db.collection('patrimonios_override').get().then(function(s){
+    s.forEach(function(d){ window._overrides[d.id]=d.data(); });
+  });
   db.collection('usos_ativos').doc(pid).onSnapshot(function(snap){
     renderPagina(snap.exists?snap.data():null);
   });
