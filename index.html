@@ -93,7 +93,9 @@ function render() {
   var q   = (document.getElementById('busca').value||'').toLowerCase();
   var fSt = document.getElementById('fil-status').value;
   var lista = patrimonios.map(function(p) {
-    return Object.assign({}, p, { status: calcStatus(todosUsos[p.id], p.id) });
+    // Mesclar com overrides salvos no Firestore (edições do admin)
+    var override = todosOverrides[p.id] || {};
+    return Object.assign({}, p, override, { status: calcStatus(todosUsos[p.id], p.id) });
   });
 
   document.getElementById('s-total').textContent    = lista.length;
@@ -132,10 +134,13 @@ function render() {
     var info = uso
       ? '<div><label>Usuário</label><span>'+esc(uso.nome)+'</span></div><div><label>Desde</label><span>'+esc(uso.hora)+'</span></div>'
       : '<div><label>Setor</label><span>'+esc(p.setor)+'</span></div><div><label>Responsável</label><span>'+esc(p.responsavel)+'</span></div>';
+    // Dados atualizados pelo admin
+    var modelo = p.modelo;
+    var equip  = p.equipamento;
     return '<div class="patrimonio-card" onclick="location.href=\'patrimonio.html?id='+p.id+'\'" tabindex="0">'+
       '<div class="card-num-row"><div class="card-num"><small>Patrimônio</small>#'+esc(p.id)+'</div>'+badgeHTML(p.status)+'</div>'+
       '<div class="card-equip">'+esc(p.equipamento)+'</div>'+
-      '<div class="card-modelo">'+esc(p.modelo)+'</div>'+
+      '<div class="card-modelo">'+esc(p.modelo)+(p.cor?' — '+esc(p.cor):'')+'</div>'+
       '<div class="card-sep"></div>'+
       '<div class="card-info">'+info+'</div></div>';
   }).join('');
@@ -149,16 +154,18 @@ db.collection('patrimonios_override').get().then(function(snap){
   snap.forEach(function(d){ todosOverrides[d.id] = d.data(); });
 });
 
-// Listener tempo real Firebase
+// Listener tempo real — usos ativos
 db.collection('usos_ativos').onSnapshot(function(snap) {
   todosUsos = {};
   snap.forEach(function(d){ todosUsos[d.id] = d.data(); });
-  // Recarregar overrides junto
-  db.collection('patrimonios_override').get().then(function(snap2){
-    todosOverrides = {};
-    snap2.forEach(function(d){ todosOverrides[d.id] = d.data(); });
-    render();
-  });
+  render();
+});
+
+// Listener tempo real — overrides (edições do admin)
+db.collection('patrimonios_override').onSnapshot(function(snap) {
+  todosOverrides = {};
+  snap.forEach(function(d){ todosOverrides[d.id] = d.data(); });
+  render();
 });
 </script>
 </body>

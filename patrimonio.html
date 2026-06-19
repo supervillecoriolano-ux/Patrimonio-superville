@@ -413,11 +413,13 @@ document.addEventListener('DOMContentLoaded',function(){
 
   if(!pid){ document.getElementById('main').innerHTML='<div class="not-found"><h2>Ops!</h2><p>Nenhum ID informado.</p></div>'; return; }
 
-  // Carregar overrides e dados
+  // Listener em tempo real para overrides (edições do admin)
   window._overrides = {};
-  db.collection('patrimonios_override').get().then(function(s){
+  db.collection('patrimonios_override').onSnapshot(function(s){
+    window._overrides = {};
     s.forEach(function(d){ window._overrides[d.id]=d.data(); });
   });
+  // Listener em tempo real para uso ativo
   db.collection('usos_ativos').doc(pid).onSnapshot(function(snap){
     renderPagina(snap.exists?snap.data():null);
   });
