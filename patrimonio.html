@@ -66,7 +66,12 @@
   <div class="modal">
     <div class="modal-header"><h2>↩️ Devolver aparelho</h2><button class="modal-close" onclick="fecharModal('modal-dev')">&times;</button></div>
     <div class="modal-body">
-      <p style="color:var(--branco-2);font-size:14px;margin-bottom:16px;">Tire uma foto do rosto para confirmar a devolução.</p>
+      <p style="color:var(--branco-2);font-size:14px;margin-bottom:16px;">Confirme seu CPF e tire uma foto do rosto para devolver o aparelho.</p>
+      <div class="form-group">
+        <label>CPF de confirmação *</label>
+        <input type="tel" id="d-cpf" placeholder="Digite seu CPF (11 números)" maxlength="11" inputmode="numeric" pattern="[0-9]*" style="font-size:18px;letter-spacing:2px;text-align:center;"/>
+        <div id="d-cpf-erro" style="display:none;color:#e74c3c;font-size:12px;margin-top:6px;font-weight:600;">❌ CPF não confere com o registro de retirada.</div>
+      </div>
       <div class="form-group">
         <label>📸 Foto de confirmação (obrigatória)</label>
         <div id="cam-box-dev" class="camera-box"><span>Toque em "Abrir câmera"</span></div>
@@ -363,6 +368,8 @@ function confirmarUso(){
 // ── Devolver ──
 function abrirDev(){
   fotoDev=null;
+  document.getElementById('d-cpf').value='';
+  document.getElementById('d-cpf-erro').style.display='none';
   document.getElementById('foto-prev-dev').style.display='none';
   document.getElementById('btn-dev-foto').style.display='none';
   document.getElementById('btn-dev-refaz').style.display='none';
@@ -372,16 +379,35 @@ function abrirDev(){
   document.getElementById('cam-box-dev').classList.remove('ativa');
   document.getElementById('cam-video-dev').style.display='none';
   abrirModal('modal-dev');
+  setTimeout(function(){ document.getElementById('d-cpf').focus(); },300);
 }
 
 function confirmarDev(){
+  var cpfDev = document.getElementById('d-cpf').value.trim();
+  var erroCPF = document.getElementById('d-cpf-erro');
+  erroCPF.style.display = 'none';
+
+  if(!cpfDev || cpfDev.length < 11){ showToast('Digite seu CPF para confirmar.','erro'); return; }
   if(!fotoDev){ showToast('Tire a foto de confirmação.','erro'); return; }
+
   var btn=document.getElementById('btn-confirmar-dev');
-  btn.disabled=true; btn.textContent='Salvando...';
+  btn.disabled=true; btn.textContent='Verificando...';
 
   db.collection('usos_ativos').doc(pid).get().then(function(snap){
     if(!snap.exists){ fecharModal('modal-dev'); location.reload(); return; }
     var uso=snap.data();
+
+    // Verificar se CPF confere
+    var cpfRegistrado = (uso.cpf||'').replace(/[^0-9]/g,'');
+    var cpfDigitado   = cpfDev.replace(/[^0-9]/g,'');
+    if(cpfRegistrado !== cpfDigitado){
+      erroCPF.style.display = 'block';
+      showToast('❌ CPF não confere com o registro de retirada!','erro');
+      btn.disabled=false; btn.textContent='↩️ Confirmar devolução';
+      return;
+    }
+
+    btn.textContent='Salvando...';
     var now=agora();
     pararCam();
     var chave=(uso.nome||'').toLowerCase().trim()+'_'+(uso.setor||'').toLowerCase().trim();
@@ -423,6 +449,41 @@ document.addEventListener('DOMContentLoaded',function(){
   db.collection('usos_ativos').doc(pid).onSnapshot(function(snap){
     renderPagina(snap.exists?snap.data():null);
   });
+});
+</script>
+<!-- POPUP LGPD -->
+<div id="lgpd-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#181818;border:1px solid rgba(74,158,74,.4);border-top:3px solid #4a9e4a;border-radius:14px;max-width:480px;width:100%;padding:32px 28px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+    <h2 style="font-family:Nunito,sans-serif;font-size:22px;font-weight:900;color:#f5f5f5;margin-bottom:8px;">Aviso de Privacidade</h2>
+    <p style="font-size:13px;color:#cccccc;line-height:1.7;margin-bottom:8px;">
+      Em conformidade com a <strong style="color:#f5f5f5;">Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>, informamos que:
+    </p>
+    <div style="background:rgba(74,158,74,.08);border:1px solid rgba(74,158,74,.2);border-radius:8px;padding:16px;margin-bottom:20px;text-align:left;">
+      <p style="font-size:13px;color:#cccccc;line-height:1.8;margin:0;">
+        ✅ Os dados coletados (nome, CPF e foto) são utilizados <strong style="color:#f5f5f5;">exclusivamente para controle interno</strong> de patrimônio da <strong style="color:#4a9e4a;">SuperVille Supermercado</strong>.<br/><br/>
+        ✅ As informações <strong style="color:#f5f5f5;">não serão compartilhadas, vendidas ou divulgadas</strong> a terceiros em nenhuma hipótese.<br/><br/>
+        ✅ As fotos e dados pessoais são armazenados de forma <strong style="color:#f5f5f5;">segura e restrita</strong>, acessíveis apenas pela administração.<br/><br/>
+        ✅ Ao continuar, você <strong style="color:#f5f5f5;">consente</strong> com o uso dessas informações para esta finalidade.
+      </p>
+    </div>
+    <button onclick="aceitarLGPD()" style="background:#4a9e4a;color:#fff;border:none;border-radius:10px;padding:14px 36px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:Nunito,sans-serif;">
+      ✅ Entendi e aceito
+    </button>
+    <p style="font-size:11px;color:#737373;margin-top:12px;">SuperVille Supermercado — Política de Privacidade</p>
+  </div>
+</div>
+
+<script>
+// LGPD
+function aceitarLGPD(){
+  document.getElementById('lgpd-overlay').style.display='none';
+  sessionStorage.setItem('lgpd_aceito','1');
+}
+window.addEventListener('DOMContentLoaded', function(){
+  if(sessionStorage.getItem('lgpd_aceito')==='1'){
+    document.getElementById('lgpd-overlay').style.display='none';
+  }
 });
 </script>
 </body>

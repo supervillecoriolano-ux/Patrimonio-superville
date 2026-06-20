@@ -168,5 +168,38 @@ db.collection('patrimonios_override').onSnapshot(function(snap) {
   render();
 });
 </script>
+<!-- POPUP LGPD -->
+<div id="lgpd-overlay" style="position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:#181818;border:1px solid rgba(74,158,74,.4);border-top:3px solid #4a9e4a;border-radius:14px;max-width:480px;width:100%;padding:32px 28px;text-align:center;">
+    <div style="font-size:40px;margin-bottom:12px;">🔒</div>
+    <h2 style="font-family:Nunito,sans-serif;font-size:22px;font-weight:900;color:#f5f5f5;margin-bottom:8px;">Aviso de Privacidade</h2>
+    <p style="font-size:13px;color:#cccccc;line-height:1.7;margin-bottom:8px;">
+      Em conformidade com a <strong style="color:#f5f5f5;">Lei Geral de Proteção de Dados (LGPD — Lei nº 13.709/2018)</strong>, informamos que:
+    </p>
+    <div style="background:rgba(74,158,74,.08);border:1px solid rgba(74,158,74,.2);border-radius:8px;padding:16px;margin-bottom:20px;text-align:left;">
+      <p style="font-size:13px;color:#cccccc;line-height:1.8;margin:0;">
+        ✅ Os dados coletados (nome, CPF e foto) são utilizados <strong style="color:#f5f5f5;">exclusivamente para controle interno</strong> de patrimônio da <strong style="color:#4a9e4a;">SuperVille Supermercado</strong>.<br/><br/>
+        ✅ As informações <strong style="color:#f5f5f5;">não serão compartilhadas, vendidas ou divulgadas</strong> a terceiros em nenhuma hipótese.<br/><br/>
+        ✅ As fotos e dados pessoais são armazenados de forma <strong style="color:#f5f5f5;">segura e restrita</strong>, acessíveis apenas pela administração.<br/><br/>
+        ✅ Ao continuar, você <strong style="color:#f5f5f5;">consente</strong> com o uso dessas informações para esta finalidade.
+      </p>
+    </div>
+    <button onclick="aceitarLGPD()" style="background:#4a9e4a;color:#fff;border:none;border-radius:10px;padding:14px 36px;font-size:15px;font-weight:700;cursor:pointer;width:100%;font-family:Nunito,sans-serif;">
+      ✅ Entendi e aceito
+    </button>
+    <p style="font-size:11px;color:#737373;margin-top:12px;">SuperVille Supermercado — Política de Privacidade</p>
+  </div>
+</div>
+<script>
+function aceitarLGPD(){
+  document.getElementById('lgpd-overlay').style.display='none';
+  sessionStorage.setItem('lgpd_aceito','1');
+}
+window.addEventListener('DOMContentLoaded', function(){
+  if(sessionStorage.getItem('lgpd_aceito')==='1'){
+    document.getElementById('lgpd-overlay').style.display='none';
+  }
+});
+</script>
 </body>
 </html>
