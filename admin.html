@@ -970,6 +970,26 @@ document.addEventListener('DOMContentLoaded',function(){
     iniciar();
   }
 });
+  function fazerLogin(){
+
+    const senha = document.getElementById('senha-input').value;
+
+    if(senha === "Coriol@no1071"){
+
+        sessionStorage.setItem('sv_admin','1');
+
+        document.getElementById('tela-login').style.display='none';
+        document.getElementById('tela-admin').style.display='block';
+
+        iniciar();
+
+    } else {
+
+        toast("Senha incorreta","erro");
+
+    }
+
+}
 </script>
 </body>
 </html>
