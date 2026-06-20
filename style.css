@@ -286,3 +286,143 @@ tbody td{padding:11px 16px;color:var(--branco-2);vertical-align:middle}
   .admin-tabs{overflow-x:auto}
   .tab-btn{white-space:nowrap}
 }
+
+/* ============================================================
+   MOBILE FIRST — Otimizações para celular
+   ============================================================ */
+
+/* Forçar viewport correto */
+html { -webkit-text-size-adjust: 100%; }
+
+/* Header mobile */
+@media (max-width: 768px) {
+  .header { padding: 0 12px; }
+  .header-inner { height: 54px; }
+  .logo-text .sub { display: none; }
+  .logo-img { width: 34px; height: 34px; }
+  .logo-text .nome { font-size: 16px; }
+  .btn-back { padding: 7px 10px; font-size: 12px; }
+
+  /* Container sem padding lateral excessivo */
+  .container { padding: 16px 12px; }
+
+  /* Page hero menor */
+  .page-hero h1 { font-size: 26px; }
+  .page-hero p { font-size: 12px; }
+
+  /* Stats em 2 colunas */
+  .stats-bar { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .stat-card { min-width: unset; padding: 12px; }
+  .stat-num { font-size: 24px; }
+
+  /* Search em coluna */
+  .search-bar { flex-direction: column; gap: 8px; }
+  .search-wrap { min-width: unset; width: 100%; }
+  .filter-select { width: 100%; }
+
+  /* Cards em coluna única */
+  .cards-grid { grid-template-columns: 1fr; gap: 10px; }
+  .patrimonio-card { padding: 16px; }
+  .card-num { font-size: 26px; }
+
+  /* Layout patrimônio em coluna */
+  .patr-layout { grid-template-columns: 1fr; gap: 14px; }
+  .patr-hero { padding: 16px; }
+  .patr-id { font-size: 44px; }
+  .patr-hero-btns .btn { font-size: 12px; padding: 7px 12px; }
+
+  /* Fields em coluna única */
+  .fields-grid { grid-template-columns: 1fr; }
+  .field-item { border-right: none; }
+  .field-item.span2 { grid-column: 1; }
+
+  /* Uso ativo */
+  .uso-ativo-box { padding: 14px; }
+  .uso-detalhes { grid-template-columns: 1fr 1fr; }
+
+  /* Sidebar abaixo do conteúdo */
+  .sidebar-card { padding: 16px; text-align: center; }
+
+  /* QR Code centralizado */
+  .qr-box { margin: 0 auto 10px; }
+
+  /* Tabelas com scroll horizontal */
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  table { min-width: 500px; font-size: 12px; }
+  thead th { padding: 10px 12px; font-size: 9px; }
+  tbody td { padding: 10px 12px; }
+
+  /* Admin tabs com scroll */
+  .admin-tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; display: flex; flex-wrap: nowrap; padding-bottom: 2px; }
+  .tab-btn { white-space: nowrap; font-size: 12px; padding: 8px 14px; flex-shrink: 0; }
+
+  /* Dashboard cards em coluna */
+  .dashboard-cards { grid-template-columns: 1fr; }
+  .uso-card { padding: 14px; }
+
+  /* Mini stats 2 colunas */
+  .mini-stats { grid-template-columns: 1fr 1fr; gap: 8px; }
+  .mini-stat .num { font-size: 26px; }
+
+  /* Modais full width */
+  .modal { max-width: 100%; margin: 0; border-radius: 14px 14px 0 0; position: fixed; bottom: 0; left: 0; right: 0; max-height: 95vh; }
+  .modal-overlay { align-items: flex-end; padding: 0; }
+  .modal-footer { flex-direction: column; gap: 8px; }
+  .modal-footer .btn { width: 100%; justify-content: center; }
+
+  /* Form em coluna */
+  .form-row { grid-template-columns: 1fr; gap: 10px; }
+
+  /* Botões grandes para touch */
+  .btn-lg { padding: 16px 28px; font-size: 16px; }
+  .btn-primary.btn-lg { width: 100%; justify-content: center; }
+
+  /* Câmera box maior no mobile */
+  .camera-box { min-height: 240px; }
+
+  /* Login card */
+  .login-card { padding: 28px 20px; }
+  .login-logo { width: 56px; height: 56px; }
+
+  /* Analytics grid em coluna */
+  #tab-analytics > div { grid-template-columns: 1fr !important; }
+
+  /* Ranking mais compacto */
+  .ranking-item { padding: 10px 14px; }
+  .ranking-count { font-size: 18px; }
+
+  /* Alert rows */
+  .alert-row { flex-direction: column; align-items: flex-start; }
+  .bloq-row { flex-direction: column; align-items: flex-start; gap: 10px; }
+
+  /* Texto menor em tabelas do admin */
+  #lista-patr table { min-width: 600px; }
+  #usando-wrap table { min-width: 700px; }
+  #hist-completo table { min-width: 700px; }
+
+  /* Seção em uso na home */
+  .eu-item { flex-wrap: wrap; gap: 8px; }
+  .eu-item-id { min-width: 50px; font-size: 20px; }
+
+  /* Popup LGPD e carregamento */
+  #lgpd-overlay > div,
+  #popup-carregamento > div { padding: 24px 18px; margin: 0 8px; }
+}
+
+/* Telas muito pequenas (320px) */
+@media (max-width: 380px) {
+  .stats-bar { grid-template-columns: 1fr 1fr; }
+  .stat-num { font-size: 20px; }
+  .card-num { font-size: 22px; }
+  .patr-id { font-size: 36px; }
+  .mini-stats { grid-template-columns: 1fr 1fr; }
+  .mini-stat .num { font-size: 22px; }
+}
+
+/* Touch — botões maiores */
+@media (hover: none) and (pointer: coarse) {
+  .btn { min-height: 44px; }
+  .modal-close { width: 44px; height: 44px; font-size: 28px; }
+  .patrimonio-card { min-height: 80px; }
+  input, select, textarea { font-size: 16px !important; } /* evita zoom no iOS */
+}
