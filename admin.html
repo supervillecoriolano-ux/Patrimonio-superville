@@ -165,6 +165,10 @@
       <div class="section-header" style="color:#e74c3c;">⚠️ Não devolvidos (+9h)</div>
       <div id="alertas-wrap"><div class="alertas-vazios">Carregando...</div></div>
     </div>
+    <div class="section-card" style="margin-bottom:18px;">
+      <div class="section-header" style="color:#f39c12;">🔓 Liberados — aguardando devolução</div>
+      <div id="liberacoes-wrap"><div class="alertas-vazios">Carregando...</div></div>
+    </div>
     <div class="section-card">
       <div class="section-header">⛔ Funcionários bloqueados</div>
       <div id="bloqueados-wrap"><div class="alertas-vazios">Carregando...</div></div>
@@ -208,6 +212,30 @@
     </div>
   </div>
 </main>
+</div>
+
+<!-- MODAL LIBERAR DEVOLUÇÃO COM ATRASO -->
+<div class="modal-overlay" id="modal-liberar">
+  <div class="modal" style="max-width:460px;">
+    <div class="modal-header"><h2>🔓 Liberar devolução em atraso</h2><button class="modal-close" onclick="fecharModal('modal-liberar')">&times;</button></div>
+    <div class="modal-body">
+      <input type="hidden" id="lib-docid"/>
+      <input type="hidden" id="lib-pid"/>
+      <input type="hidden" id="lib-nome"/>
+      <input type="hidden" id="lib-setor"/>
+      <input type="hidden" id="lib-cpf"/>
+      <div id="lib-info" style="background:rgba(231,76,60,.08);border:1px solid #e74c3c;border-radius:8px;padding:12px 14px;margin-bottom:16px;font-size:13px;color:#e74c3c;font-weight:600;"></div>
+      <div class="form-group">
+        <label>Motivo da liberação <span style="color:#e74c3c;">*</span></label>
+        <textarea id="lib-motivo" placeholder="Descreva o motivo pelo qual está liberando a devolução em atraso..." rows="4" maxlength="300" style="resize:vertical;"></textarea>
+        <div id="lib-motivo-erro" style="display:none;color:#e74c3c;font-size:12px;margin-top:4px;font-weight:600;">❌ O motivo é obrigatório.</div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="fecharModal('modal-liberar')">Cancelar</button>
+      <button class="btn btn-primary" id="btn-confirmar-lib" onclick="confirmarLiberacao()">✅ Confirmar liberação</button>
+    </div>
+  </div>
 </div>
 
 <!-- MODAL FOTO -->
@@ -572,10 +600,30 @@ function carregarAlertas(){
         '<span style="font-size:22px;">⛔</span>'+
         '<div><div style="font-weight:700;color:var(--branco);">'+esc(b.nome)+' — CPF: '+esc(b.cpf||'—')+'</div>'+
         '<div style="font-size:12px;color:#e74c3c;">'+esc(b.setor)+' | #'+esc(b.patrimonioId)+' | Retirou '+esc(b.dataRetirada)+' às '+esc(b.horaRetirada)+'</div></div></div>'+
-        '<button class="btn btn-ghost" style="font-size:12px;" onclick="liberarManual(\''+d.id+'\',\''+esc(b.patrimonioId)+'\',\''+esc(b.nome)+'\',\''+esc(b.setor)+'\')">✅ Liberar</button>'+
+        '<button class="btn btn-ghost" style="font-size:12px;" onclick="liberarManual(\''+d.id+'\',\''+esc(b.patrimonioId)+'\',\''+esc(b.nome)+'\',\''+esc(b.setor)+'\',\''+esc(b.cpf||'')+'\')">✅ Liberar</button>'+
       '</div>';
     });
     el2.innerHTML=html;
+  });
+
+  // Liberações concedidas aguardando devolução pelo funcionário
+  db.collection('liberacoes_pendentes').get().then(function(snap){
+    var el3=document.getElementById('liberacoes-wrap');
+    if(!el3)return;
+    if(snap.empty){el3.innerHTML='<div class="alertas-vazios">Nenhuma liberação aguardando.</div>';return;}
+    var html='';
+    snap.forEach(function(d){
+      var b=d.data();
+      html+='<div class="bloq-row"><div style="display:flex;align-items:center;gap:12px;">'+
+        '<span style="font-size:22px;">🔓</span>'+
+        '<div><div style="font-weight:700;color:#f39c12;">Patrimônio #'+esc(d.id)+'</div>'+
+        '<div style="font-size:12px;color:var(--cinza);">Liberado por: '+esc(b.liberadoPor||'Admin')+'</div>'+
+        '<div style="font-size:12px;color:var(--cinza);">Motivo: '+esc(b.motivo||'—')+'</div>'+
+        '</div></div>'+
+        '<span style="font-size:11px;color:#f39c12;font-weight:600;">Aguardando funcionário</span>'+
+      '</div>';
+    });
+    el3.innerHTML=html;
   });
 }
 
@@ -871,14 +919,64 @@ function carregarAlteracoes(){
   });
 }
 
-function liberarManual(docId,pid,nome,setor){
-  if(!confirm('Liberar '+nome+' e marcar #'+pid+' como devolvido?'))return;
+function liberarManual(docId,pid,nome,setor,cpf){
+  document.getElementById('lib-docid').value=docId;
+  document.getElementById('lib-pid').value=pid;
+  document.getElementById('lib-nome').value=nome;
+  document.getElementById('lib-setor').value=setor||'';
+  document.getElementById('lib-cpf').value=cpf||'';
+  document.getElementById('lib-motivo').value='';
+  document.getElementById('lib-motivo-erro').style.display='none';
+  document.getElementById('lib-info').textContent='⚠️ '+nome+' — Aparelho #'+pid+' com devolução em atraso. Informe o motivo antes de liberar.';
+  abrirModal('modal-liberar');
+}
+
+function confirmarLiberacao(){
+  var docId  = document.getElementById('lib-docid').value;
+  var pid    = document.getElementById('lib-pid').value;
+  var nome   = document.getElementById('lib-nome').value;
+  var setor  = document.getElementById('lib-setor').value;
+  var cpf    = document.getElementById('lib-cpf').value;
+  var motivo = document.getElementById('lib-motivo').value.trim();
+
+  var erroEl = document.getElementById('lib-motivo-erro');
+  if(!motivo){ erroEl.style.display='block'; return; }
+  erroEl.style.display='none';
+
+  var btn=document.getElementById('btn-confirmar-lib');
+  btn.disabled=true; btn.textContent='Salvando...';
+
+  var adminNome = sessionStorage.getItem('sv_admin_nome')||'Admin';
+  var adminCpf  = sessionStorage.getItem('sv_admin_cpf')||'—';
   var n=agora();
-  db.collection('usos_ativos').doc(pid).delete()
-  .then(function(){return db.collection('bloqueados').doc(docId).delete();})
-  .then(function(){return db.collection('historico').doc(pid).collection('movimentacoes').add({nome:nome,setor:setor,tipo:'Devolução',motivo:'Liberado pelo admin',data:n.data,hora:n.hora,ts:n.ts});})
-  .then(function(){toast('✅ Liberado!');setTimeout(function(){carregarAlertas();},500);})
-  .catch(function(e){toast('Erro: '+e.message,'erro');});
+  var motivoCompleto = motivo + ' [Liberado por: '+adminNome+' | CPF: '+adminCpf+']';
+
+  // 1. Salvar liberação pendente para o funcionário detectar
+  db.collection('liberacoes_pendentes').doc(pid).set({
+    motivo: motivoCompleto,
+    liberadoPor: adminNome,
+    liberadoCpf: adminCpf,
+    ts: n.ts
+  })
+  // 2. Registrar no histórico
+  .then(function(){
+    return db.collection('historico').doc(pid).collection('movimentacoes').add({
+      nome:nome, cpf:cpf||'', setor:setor,
+      tipo:'Devolução c/ Atraso — Aguardando funcionário',
+      motivo: motivoCompleto,
+      data:n.data, hora:n.hora, ts:n.ts
+    });
+  })
+  .then(function(){
+    fecharModal('modal-liberar');
+    btn.disabled=false; btn.textContent='✅ Confirmar liberação';
+    toast('✅ Liberação concedida! Aguarde o funcionário devolver.');
+    setTimeout(function(){ carregarAlertas(); },500);
+  })
+  .catch(function(e){
+    btn.disabled=false; btn.textContent='✅ Confirmar liberação';
+    toast('Erro: '+e.message,'erro');
+  });
 }
 
 function abrirEditar(id){

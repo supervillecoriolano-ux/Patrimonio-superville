@@ -293,19 +293,22 @@ function renderPagina(uso){
 }
 
 function carregarHistorico(){
+  var limite48h = Date.now() - (48 * 3600000);
   db.collection('historico').doc(pid).collection('movimentacoes')
   .orderBy('ts','desc').limit(50)
   .get().then(function(snap){
     var wrap=document.getElementById('hist-wrap');
     if(!wrap)return;
-    if(snap.empty){ wrap.innerHTML='<div class="empty-table"><p>Sem movimentações ainda.</p></div>'; return; }
     var rows='';
     snap.forEach(function(d){
       var r=d.data();
+      // Mostrar só registros das últimas 48h para o funcionário
+      if(r.ts && r.ts < limite48h) return;
       rows+='<tr><td>'+esc(r.data)+'</td><td>'+esc(r.hora)+'</td><td>'+esc(r.nome)+'</td><td>'+esc(r.cpf||'—')+'</td><td>'+esc(r.setor)+'</td><td>'+tipoBadge(r.tipo)+'</td><td style="color:var(--cinza)">'+esc(r.motivo||'—')+'</td></tr>';
     });
+    if(!rows){ wrap.innerHTML='<div class="empty-table"><p>Sem movimentações nas últimas 48h.</p></div>'; return; }
     wrap.innerHTML='<div class="table-wrap"><table><thead><tr><th>Data</th><th>Hora</th><th>Nome</th><th>CPF</th><th>Setor</th><th>Tipo</th><th>Motivo</th></tr></thead><tbody>'+rows+'</tbody></table></div>';
-  }).catch(function(){ document.getElementById('hist-wrap').innerHTML='<div class="empty-table"><p>Sem movimentações ainda.</p></div>'; });
+  }).catch(function(){ document.getElementById('hist-wrap').innerHTML='<div class="empty-table"><p>Sem movimentações nas últimas 48h.</p></div>'; });
 }
 
 // ── Iniciar uso ──
@@ -416,20 +419,75 @@ function confirmarDev(){
       return;
     }
 
-    btn.textContent='Salvando...';
-    var now=agora();
-    pararCam();
-    var chave=(uso.nome||'').toLowerCase().trim()+'_'+(uso.setor||'').toLowerCase().trim();
-    db.collection('usos_ativos').doc(pid).delete()
-    .then(function(){ return db.collection('bloqueados').doc(chave).delete(); })
-    .then(function(){ return db.collection('historico').doc(pid).collection('movimentacoes').add({ nome:uso.nome, cpf:uso.cpf||'', setor:uso.setor, tipo:'Devolução', motivo:'', data:now.data, hora:now.hora, ts:now.ts }); })
-    .then(function(){
-      fecharModal('modal-dev');
-      showToast('↩️ Aparelho devolvido com sucesso!');
-      // Mostrar popup de carregamento
-      document.getElementById('popup-carregamento').style.display = 'flex';
-    }).catch(function(e){ showToast('Erro: '+e.message,'erro'); btn.disabled=false; btn.textContent='↩️ Confirmar devolução'; });
+    // Verificar se está em atraso
+    var atrasado = (Date.now() - uso.ts) / 3600000 > HORAS_DEV;
+    if(atrasado){
+      // Checar se admin já liberou esta devolução
+      db.collection('liberacoes_pendentes').doc(pid).get().then(function(libSnap){
+        if(libSnap.exists){
+          // Admin liberou — pode devolver, registrar como "Devolução c/ Atraso"
+          processarDevolucao(uso, btn, libSnap.data().motivo || 'Liberado pelo admin');
+        } else {
+          // Não liberado — bloquear e orientar
+          btn.disabled=false; btn.textContent='↩️ Confirmar devolução';
+          fecharModal('modal-dev');
+          mostrarBloqueioAtraso(uso);
+        }
+      }).catch(function(){
+        btn.disabled=false; btn.textContent='↩️ Confirmar devolução';
+        showToast('Erro ao verificar liberação. Tente novamente.','erro');
+      });
+      return;
+    }
+
+    // Sem atraso — devolução normal
+    processarDevolucao(uso, btn, '');
   });
+}
+
+function mostrarBloqueioAtraso(uso){
+  var horas = ((Date.now() - uso.ts) / 3600000).toFixed(1);
+  var div = document.createElement('div');
+  div.id = '_bloqueio_overlay';
+  div.style.cssText = 'position:fixed;inset:0;background:rgba(0,0,0,.92);z-index:9999;display:flex;align-items:center;justify-content:center;padding:20px;';
+  div.innerHTML =
+    '<div style="background:var(--preto-2);border:2px solid #e74c3c;border-radius:16px;padding:28px 24px;max-width:420px;width:100%;text-align:center;">' +
+    '<div style="font-size:48px;margin-bottom:12px;">⛔</div>' +
+    '<h2 style="color:#e74c3c;margin-bottom:10px;font-size:20px;">Devolução bloqueada</h2>' +
+    '<p style="color:var(--branco-2);font-size:14px;line-height:1.6;margin-bottom:16px;">' +
+    'Este aparelho está em atraso há <strong style="color:#e74c3c;">' + horas + 'h</strong>.<br>' +
+    'A devolução está bloqueada e precisa ser <strong style="color:var(--branco);">autorizada por um administrador</strong>.<br><br>' +
+    'Por favor, informe a um administrador para que ele acesse o <strong style="color:var(--verde);">Painel Admin</strong>, aba <strong style="color:var(--verde);">Alertas</strong>, e libere a devolução deste aparelho.' +
+    '</p>' +
+    '<button onclick="document.getElementById(\'_bloqueio_overlay\').remove()" style="background:var(--verde);color:#000;font-weight:700;border:none;border-radius:8px;padding:12px 28px;font-size:15px;cursor:pointer;">Entendido</button>' +
+    '</div>';
+  document.body.appendChild(div);
+}
+
+function processarDevolucao(uso, btn, motivoLib){
+  btn.textContent='Salvando...';
+  var now=agora();
+  pararCam();
+  var chave=(uso.nome||'').toLowerCase().trim()+'_'+(uso.setor||'').toLowerCase().trim();
+  var tipoReg = motivoLib ? 'Devolução c/ Atraso' : 'Devolução';
+  db.collection('usos_ativos').doc(pid).delete()
+  .then(function(){ return db.collection('bloqueados').doc(chave).delete(); })
+  .then(function(){ return db.collection('liberacoes_pendentes').doc(pid).delete(); })
+  .then(function(){
+    return db.collection('historico').doc(pid).collection('movimentacoes').add({
+      nome:uso.nome, cpf:uso.cpf||'', setor:uso.setor,
+      tipo: tipoReg,
+      motivo: motivoLib || '',
+      data:now.data, hora:now.hora, ts:now.ts
+    });
+  })
+  .then(function(){
+    fecharModal('modal-dev');
+    showToast('↩️ Aparelho devolvido com sucesso!');
+    document.getElementById('popup-carregamento').style.display = 'flex';
+    setTimeout(function(){ location.reload(); }, 800);
+  })
+  .catch(function(e){ showToast('Erro: '+e.message,'erro'); btn.disabled=false; btn.textContent='↩️ Confirmar devolução'; });
 }
 
 // ── Fechar modal ao clicar fora ──
